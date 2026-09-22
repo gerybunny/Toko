@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Bp. Aman</title>
+    
+    <!-- ⚡ PERCEPAT KONEKSI: PRA-KONEKSI KE SERVER -->
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://script.google.com">
+<link rel="preconnect" href="https://wa.me">
+<link rel="preconnect" href="https://www.google.com">
+<link rel="preconnect" href="https://maps.google.com">
+<link rel="preconnect" href="https://maps.googleapis.com">
+<link rel="preconnect" href="https://maps.gstatic.com">
+    
+    <style>
+        * {box-sizing: border-box; font-family: sans-serif; margin:0; padding:0;}
+        body {background: #f2f2f2; padding:10px; max-width:480px; margin:0 auto;}
+        
+        .header {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color:white; padding:18px; text-align:center; 
+            border-radius:12px; margin-bottom:15px;
+        }
+        .header-kelola {cursor:default; user-select:none;}
+
+        .admin-panel {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius:10px;
+            padding:12px;
+            margin-bottom:15px;
+            display:none;
+        }
+        .admin-panel.active {display:block;}
+        .pin-form {display:none; gap:8px; flex-direction:column; margin-bottom:10px;}
+        .pin-form.active {display:flex;}
+        .admin-form {display:none; gap:8px; flex-direction:column;}
+        .admin-form.active {display:flex;}
+        input, select {padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;}
+        input[type="file"] {border:none; padding:4px; font-size:14px;}
+        .btn-simpan {background:#28a745; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;}
+        .btn-tolak {background:#dc3545; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;}
+        .btn-hapus {background:#dc3545; color:white; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:12px;}
+        .btn-ubah {background:#007bff; color:white; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:4px;}
+        .foto-preview {width:100px; height:100px; object-fit:cover; border-radius:6px; margin:5px 0; display:none;}
+        .info-foto-lama {font-size:12px; color:#28a745; margin:4px 0;}
+        .btn-batal {background:#6c757d; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; display:none;}
+        .btn-batal.active {display:block;}
+
+        .search-box {width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px; font-size:15px;}
+        .search-box-admin {width:100%; padding:8px; margin:8px 0; border:1px solid #ffc107; border-radius:6px; font-size:14px; background:#fff9e6;}
+
+        .daftar-habis {
+            background:#ffebee; border:2px solid #ef5350; border-radius:10px;
+            padding:14px; margin:15px 0; display:none;
+        }
+        .daftar-habis.aktif {display:block;}
+        .daftar-habis h4 {color:#c62828; margin:0 0 10px 0; font-size:15px; display:flex; align-items:center; gap:8px;}
+        .daftar-habis h4 span {background:#ef5350; color:white; padding:2px 10px; border-radius:20px; font-size:13px;}
+        .baris-habis {padding:8px 10px; border-bottom:1px dashed #f8c8c8; font-size:14px; color:#c62828; display:flex; justify-content:space-between; align-items:center;}
+        .baris-habis:last-child {border-bottom:none;}
+        .baris-habis .nama-brng {font-weight:500;}
+        .baris-habis .stok-brng {background:#ef5350; color:white; padding:2px 8px; border-radius:4px; font-size:12px;}
+
+        .grid-produk {display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+        @media (max-width:360px) {.grid-produk {grid-template-columns:1fr;}}
+        .produk {background:white; border-radius:10px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.08); display:flex; flex-direction:column; height:100%;}
+        .produk.habis {opacity:0.6; background:#ffebee; border:2px solid #ef5350;}
+        .produk-img {width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px; background:#eee; display:block;}
+        .produk-nama {font-weight:bold; font-size:14px; margin-bottom:4px; line-height:1.3;}
+        .produk-harga {color:#25D366; font-weight:bold; margin-bottom:2px; font-size:15px;}
+        .produk-harga-grosir {color:#007bff; font-size:11px; margin-bottom:2px;}
+        .produk-harga-besar {color:#8e44ad; font-size:11px; margin-bottom:4px;}
+        .stok-info {font-size:12px; margin:4px 0;}
+        .stok-aman {color:#28a745; font-weight:bold;}
+        .stok-habis {color:#dc3545; font-weight:bold;}
+        
+        .jumlah {display:flex; align-items:center; gap:6px; margin-top:auto; padding-top:8px;}
+        .jumlah button {width:30px; height:30px; border:none; border-radius:50%; background:#25D366; color:white; font-size:16px; cursor:pointer; flex-shrink:0;}
+        .jumlah button:disabled {background:#ccc; cursor:not-allowed;}
+        .jumlah input {width:40px; text-align:center; padding:4px; font-size:14px;}
+        .jumlah input:disabled {background:#eee; cursor:not-allowed;}
+
+        .daftar-barang {
+            overflow-anchor: none !important;
+            min-height: 50vh !important;
+        }
+
+        .blok-pemesan {
+            background:#e9f7ef; 
+            padding:15px; 
+            border-radius:10px; 
+            margin:15px 0;
+        }
+        .blok-pemesan h4 {margin-bottom:10px; font-size:15px;}
+        .baris-sejajar {display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+        .baris-sejajar input {flex:1; min-width:130px;}
+        .blok-pemesan input {width:100%; margin-bottom:8px;}
+        
+        .btn-gps {
+            width:100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px 0 10px 0;
+            transition: 0.2s;
+        }
+        .btn-gps:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-gps:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-wa {
+            width:100%; 
+            background:#25D366; 
+            color:white; 
+            border:none; 
+            padding:14px; 
+            border-radius:8px; 
+            font-size:16px; 
+            font-weight:bold; 
+            cursor:pointer;
+            margin-top:5px;
+        }
+        .btn-wa:disabled {background:#ccc; cursor:not-allowed;}
+
+        .keranjang-bagian {background:#fff; border-radius:10px; padding:12px; margin:15px 0; border:2px solid #25D366;}
+        .keranjang-judul {font-weight:bold; font-size:15px; color:#128C7E; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;}
+        .keranjang-wadah {max-height:280px; overflow-y:auto; padding-right:4px;}
+        .keranjang-wadah::-webkit-scrollbar {width:6px;}
+        .keranjang-wadah::-webkit-scrollbar-thumb {background:#25D366; border-radius:3px;}
+        .keranjang-item {padding:8px 0; border-bottom:1px dashed #ddd; font-size:14px;}
+        .keranjang-item:last-child {border-bottom:none;}
+        .keranjang-nama {font-weight:bold; margin-bottom:4px;}
+        .keranjang-ubah {display:flex; align-items:center; justify-content:space-between; margin-top:6px;}
+        .keranjang-btn-group {display:flex; align-items:center; gap:6px;}
+        .keranjang-btn-group button {width:28px; height:28px; border:none; border-radius:50%; background:#25D366; color:white; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+        .keranjang-btn-group button:disabled {background:#ccc; cursor:not-allowed;}
+        .keranjang-hapus {background:#dc3545; border:none; color:white; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer;}
+        .keranjang-subtotal {text-align:right; font-size:13px; color:#555; margin-top:4px;}
+
+        .total {font-size:18px; font-weight:bold; color:#128C7E; margin:12px 0; text-align:right; padding-right:8px;}
+
+        .daftar-barang-admin {margin-top:12px; max-height:250px; overflow-y:auto;}
+        .barang-admin {display:flex; align-items:center; justify-content:space-between; padding:6px; background:white; border-radius:4px; margin:4px 0; font-size:14px;}
+
+        .pembatas-halaman {display:flex; justify-content:center; align-items:center; gap:12px; margin:15px 0;}
+        .pembatas-halaman button {padding:8px 14px; border:none; border-radius:6px; background:#128C7E; color:white; cursor:pointer; font-weight:bold;}
+        .pembatas-halaman button:disabled {background:#ccc; cursor:not-allowed;}
+
+        .riwayat-bagian {margin-top:15px; border-top:2px dashed #ffc107; padding-top:12px;}
+        .bungkus-riwayat {max-height:400px; overflow-y:auto; margin-top:8px; padding-right:4px;}
+        .bungkus-riwayat::-webkit-scrollbar {width:6px;}
+        .bungkus-riwayat::-webkit-scrollbar-thumb {background:#ffc107; border-radius:3px;}
+        .riwayat-item {background:white; padding:10px; border-radius:8px; margin-bottom:8px; font-size:13px; position:relative;}
+        .riwayat-item.kasir {border-left:4px solid #007bff;}
+        .riwayat-item.pesanan {border-left:4px solid #28a745;}
+        .riwayat-item.terpilih {background:#e6ffea; border-left:4px solid #25D366;}
+        .cek-riwayat {position:absolute; top:8px; right:8px; width:20px; height:20px; cursor:pointer; accent-color:#25D366;}
+        .tombol-muat-riwayat {width:100%; padding:10px; margin-top:8px; background:#ffc107; color:#000; border:none; border-radius:6px; font-weight:bold; cursor:pointer;}
+        .tombol-muat-riwayat:disabled {background:#ddd; color:#888; cursor:not-allowed;}
+        .laporan-kotak {background:white; padding:12px; border-radius:8px; margin-bottom:8px;}
+        .laporan-angka {font-size:19px; font-weight:bold; color:#25D366;}
+        .laporan-angka.untung {color:#ff9800; font-size:17px;}
+        .kosong {text-align:center; color:#888; padding:30px;}
+        .info {font-size:12px; margin:8px 0; color:#555;}
+        .info.sukses {color:#25D366; font-weight:bold;}
+        .info.gagal {color:#dc3545;}
+        .info.cache {color:#ff9800; font-weight:bold;}
+        .info.muat-bertahap {color:#007bff; font-weight:bold; text-align:center; padding:8px;}
+        .peringatan {background:#fff3cd; padding:8px; border-radius:6px; color:#856404; font-size:13px; margin:8px 0;}
+        .peringatan-merah {background:#ffebee; padding:8px; border-radius:6px; color:#c62828; font-size:13px; margin:8px 0;}
+        .footer {margin-top:25px; padding:12px; background:#e9f7ef; border-radius:8px; text-align:center; color:#128C7E; font-weight:bold; font-size:14px;}
+        .periode-btn {padding:6px 10px; border:none; border-radius:6px; margin:4px; cursor:pointer; font-weight:bold;}
+        .periode-btn.aktif {background:#128C7E; color:white;}
+        .jenis-kasir {display:inline-block; background:#007bff; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:6px;}
+        .jenis-pesanan {display:inline-block; background:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:6px;}
+
+        .penutup-layar {position:fixed; top:0; left:0; right:0; bottom:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); z-index:99999; display:none;}
+        .kotak-konfirmasi {position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:25px 20px; border-radius:12px; border:3px solid #ffc107; width:90%; max-width:320px; z-index:100000; display:none; text-align:center; box-shadow:0 0 25px rgba(0,0,0,0.5);}
+        .kotak-konfirmasi h4 {color:#856404; margin-bottom:12px; font-size:16px; font-weight:bold;}
+        .teks-hapus {font-weight:bold; margin-bottom:18px; color:#dc3545; font-size:15px; padding:10px; background:#fff0f0; border-radius:6px; word-break:break-all;}
+        .tombol-grup {display:flex; gap:10px; margin-top:10px;}
+        .tombol-tidak {background:#6c757d; color:white;}
+        .tombol-ya {background:#dc3545; color:white;}
+    </style>
+</head>
+<body>
+
+<div id="penutupHapusBarang" class="penutup-layar" onclick="tutupKonfirmasi()"></div>
+<div id="kotakHapusBarang" class="kotak-konfirmasi">
+    <h4>YAKIN INGIN MENGHAPUS?</h4>
+    <div id="namaDihapus" class="teks-hapus"></div>
+    <div class="tombol-grup">
+        <button class="tombol-tidak" onclick="tutupKonfirmasi()">BATAL</button>
+        <button class="tombol-ya" onclick="lakukanHapusBarang()">YA, HAPUS</button>
+    </div>
+</div>
+
+<div class="header header-kelola" onclick="toggleAdmin()">
+    <h2>🛒 Toko Bp. Aman</h2>
+    <p>Pesan barang mudah & cepat</p>
+    <div id="infoMuat" class="info">Sabar, lagi memuat data...</div>
+</div>
+
+<div class="admin-panel" id="adminPanel">    
+    <div class="pin-form" id="pinForm">
+        <input type="password" id="inputPin" placeholder="Masukkan PIN Admin" maxlength="20">
+        <button class="btn-simpan" onclick="cekPin()">Masuk</button>
+        <button class="btn-tolak" onclick="tutupAdmin()">Tutup</button>
+    </div>
+
+    <div class="admin-form" id="adminForm">
+        <h4 id="judulForm">Tambah Barang Baru</h4>
+
+        <div id="kotakBarangHabis" class="daftar-habis">
+            <h4>BARANG HABIS <span id="jumlahHabis">0</span></h4>
+            <div id="isiDaftarHabis"></div>
+        </div>
+
+        <input type="text" id="namaBarang" placeholder="Nama barang">
+        <input type="text" id="satuanBesar" placeholder="Satuan Besar: Dus / Pak / Krat (kosong = Dus)">
+        <input type="number" id="modalBeli" placeholder="Modal beli — biarkan kosong = tetap">
+        <input type="number" id="hargaSatuan" placeholder="Harga eceran — biarkan kosong = tetap">
+        <input type="number" id="hargaGrosir" placeholder="Harga grosir — biarkan kosong = tetap">
+        <input type="number" id="minGrosir" placeholder="Minimal beli grosir — biarkan kosong = tetap">
+        <input type="number" id="hargaDus" placeholder="Harga per satuan besar — biarkan kosong = tetap">
+        <input type="number" id="isiPerDus" placeholder="Isi per satuan besar — biarkan kosong = tetap">
+        <input type="number" id="stokBarang" placeholder="Jumlah stok — biarkan kosong = tetap">
+        <input type="file" id="fotoBarang" accept="image/*" onchange="pratinjauFoto(this)">
+        <div class="info-foto-lama" id="infoFotoLama" style="display:none;">Foto lama tetap dipakai</div>
+        <img id="pratinjau" class="foto-preview" alt="Pratinjau Foto">
+        <button class="btn-simpan" id="btnSimpan" onclick="simpanBarang()">TAMBAH BARANG</button>
+        <button class="btn-batal" id="btnBatal" onclick="batalUbah()">BATAL UBAH</button>
+        <div id="infoSimpan" class="info"></div>
+
+        <input type="text" class="search-box-admin" id="kotakCariAdmin" placeholder="🔍 Cari barang..." oninput="cariBarangAdmin()">
+        <div class="daftar-barang-admin" id="daftarAdmin"></div>
+
+        <div class="riwayat-bagian">
+            <h4>LAPORAN PENJUALAN</h4>
+            <div>
+                <button class="periode-btn aktif" onclick="gantiPeriode('hari')">Hari Ini</button>
+                <button class="periode-btn" onclick="gantiPeriode('minggu')">7 Hari</button>
+                <button class="periode-btn" onclick="gantiPeriode('bulan')">30 Hari</button>
+            </div>
+            <div class="laporan-kotak">
+                <div id="labelPeriode">Penjualan Hari Ini</div>
+                <div class="laporan-angka">Omzet: Rp <span id="lapOmzet">0</span></div>
+                <div class="laporan-angka untung">Untung: Rp <span id="lapUntung">0</span></div>
+                <small>Jumlah Transaksi: <span id="lapJumlah">0</span></small>
+            </div>
+
+            <h4 style="margin-top:15px;">RIWAYAT TRANSAKSI</h4>
+            <div id="infoRiwayat" class="info">Memuat riwayat...</div>
+            <div class="bungkus-riwayat" id="bungkusRiwayat" onscroll="cekScrollBawah()">
+                <div id="daftarRiwayat"></div>
+            </div>
+            <button class="tombol-muat-riwayat" id="tombolMuatRiwayat" onclick="muatLagiRiwayat()" style="display:none;">MUAT LEBIH BANYAK...</button>
+        </div>
+
+        <button class="btn-tolak" style="margin-top:15px; width:100%;" onclick="tutupAdmin()">Tutup Panel Admin</button>
+    </div>
+</div>
+
+<input type="text" class="search-box" id="kotakCari" placeholder="🔍 Cari barang..." oninput="cariBarang()">
+
+<div id="daftarBarang" class="grid-produk"></div>
+
+<div class="pembatas-halaman">
+    <button id="btnSebelum" onclick="gantiHalaman(-1)">◀ ◀ ◀</button>
+    <span id="infoHalaman">Hal 1 dari 1</span>
+    <button id="btnSesudah" onclick="gantiHalaman(1)">▶ ▶ ▶</button>
+</div>
+
+<div id="peringatanMin" class="peringatan" style="display:none;"></div>
+<div id="peringatanStok" class="peringatan-merah" style="display:none;"></div>
+
+<div class="keranjang-bagian" id="bagianKeranjang" style="display:none;">
+    <div class="keranjang-judul">
+        RINGKASAN PESANAN
+        <span id="jumlahItemKeranjang">(0 barang)</span>
+    </div>
+    <div class="keranjang-wadah" id="wadahKeranjang"></div>
+    <div class="total">Total: Rp <span id="totalBayar">0</span></div>
+</div>
+
+<div class="blok-pemesan">
+    <h4>Data pemesan (*) wajib diisi</h4>
+    <div class="baris-sejajar">
+        <input type="text" id="namaPemesan" placeholder="*Isi Nama">
+        <input type="text" id="alamatPemesan" placeholder="*Isi Alamat">
+    </div>
+    <button type="button" class="btn-gps" onclick="pilihMetodeGPS()">Klik ! Untuk Isi Alamat</button>
+    <button class="btn-wa" id="btnKirimWA" onclick="kirimKeWA()">KIRIM PESANAN KE TOKO</button>
+</div>
+
+<script>
+const NOMOR_WA = "62895417898775";
+const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbwTQEolvUobuRORHvYgF32FtTewxQBHyfbcIIiXK-QSeRhmhiPSQQ9JprGlENv2mKTz/exec";
+
+const MINIMAL_PESANAN = 20000;
+const PER_HALAMAN = 6;
+const KADALUARSA_CACHE = 2 * 60 * 1000;
+const JUMLAH_PER_AMBIL = 12;
+
+// ✅ KONFIGURASI FOTO — CEGAH CRASH
+const MAKS_FILE_FOTO_MB = 5;
+const MAKS_LEBAR_FOTO = 300;
+const KUALITAS_FOTO = 0.8;
+
+let pinBenar = false;
+let daftarBarang = [];
+let daftarBarangTerurut = [];
+let riwayatPenjualan = [];
+let riwayatTerpilih = new Set();
+let keranjang = {};
+let halamanSekarang = 1;
+let fotoTerpilih = null;
+let fotoLamaSaatUbah = null;
+let sedangUbahIndex = null;
+let indeksHapusBarang = null;
+let periodeLaporan = 'hari';
+let tampilRiwayatSampai = 5;
+let sedangMemuat = false;
+
+function pilihMetodeGPS() {
+    if (typeof Android !== 'undefined' && Android.ambilLokasiDariGPS) {
+        Android.ambilLokasiDariGPS();
+    } else {
+        ambilLokasiGPS();
+    }
+}
+
+function ambilLokasiDariAplikasi(lat, lng) {
+    const alamat = document.getElementById('alamatPemesan');
+    if (alamat) {
+        alamat.value = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        alert('Lokasi berhasil diambil!\n' + lat + ', ' + lng);
+    }
+}
+
+async function ambilLokasiGPS() {
+  const btn = document.querySelector('.btn-gps');
+  const inputAlamat = document.getElementById('alamatPemesan');
+  
+  btn.innerHTML = "Mendeteksi lokasi...";
+  btn.disabled = true;
+
+  if (!navigator.geolocation) {
+    alert("Perangkat TIDAK mendukung GPS!");
+    btn.innerHTML = "Ambil Lokasi Saya";
+    btn.disabled = false;
+    return;
+  }
+
+  try {
+    const posisi = await new Promise((berhasil, gagal) => {
+      navigator.geolocation.getCurrentPosition(berhasil, gagal, {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
+      });
+    });
+
+    const lat = posisi.coords.latitude;
+    const lng = posisi.coords.longitude;
+    const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    inputAlamat.value = `📍 ${lat}, ${lng}\n${linkMaps}`;
+    
+    btn.innerHTML = "Lokasi Tersimpan!";
+    setTimeout(() => {
+      btn.innerHTML = "Ambil Lokasi Saya";
+      btn.disabled = false;
+    }, 2500);
+
+  } catch (err) {
+    let pesan = "Gagal ambil lokasi";
+    if (err.code === 1) pesan = "Izin lokasi DITOLAK!";
+    else if (err.code === 2) pesan = "Lokasi tidak ditemukan!";
+    else if (err.code === 3) pesan = "Terlalu lama menunggu!";
+    alert(pesan);
+    btn.innerHTML = "Ambil Lokasi Saya";
+    btn.disabled = false;
+  }
+}
+
+function simpanCacheBarang(data) {
+  try { localStorage.setItem("cacheBarang", JSON.stringify(data)); localStorage.setItem("waktuCacheBarang", Date.now()); } 
+  catch (e) { console.log("Cache penuh:", e); }
+}
+function ambilCacheBarang() {
+  try {
+    const waktu = localStorage.getItem("waktuCacheBarang");
+    if (!waktu || Date.now() - waktu > KADALUARSA_CACHE) return null;
+    return JSON.parse(localStorage.getItem("cacheBarang"));
+  } catch (e) { return null; }
+}
+
+function urutkanBarangAbjad(daftar) {
+    return daftar.sort((a, b) => {
+        const namaA = (a.nama || "").trim().toLowerCase();
+        const namaB = (b.nama || "").trim().toLowerCase();
+        return namaA.localeCompare(namaB, 'id');
+    });
+}
+
+function tampilkanBarangHabis() {
+    const kotak = document.getElementById('kotakBarangHabis');
+    const angka = document.getElementById('jumlahHabis');
+    const wadah = document.getElementById('isiDaftarHabis');
+    const barangHabis = daftarBarang.filter(b => b.stok <= 0);
+    if (barangHabis.length === 0) { kotak.classList.remove('aktif'); return; }
+    kotak.classList.add('aktif');
+    angka.textContent = barangHabis.length;
+    wadah.innerHTML = barangHabis.map(b => `<div class="baris-habis"><span class="nama-brng">${b.nama}</span><span class="stok-brng">Stok: ${b.stok}</span></div>`).join('');
+}
+
+async function fetchDenganCobaUlang(url, maksCoba = 3) {
+    for (let percobaan = 1; percobaan <= maksCoba; percobaan++) {
+        try {
+            const res = await fetch(url, {
+                signal: AbortSignal.timeout(20000)
+            });
+            if (res.ok) return res;
+            throw new Error(`Server: ${res.status}`);
+        } catch (err) {
+            if (percobaan === maksCoba) throw err;
+            await new Promise(t => setTimeout(t, percobaan * 1000));
+        }
+    }
+}
+
+async function muatDariInternet() {
+    if (sedangMemuat) return; sedangMemuat = true;
+    const info = document.getElementById('infoMuat');
+    
+    const cache = ambilCacheBarang();
+    if (cache) {
+        daftarBarang = cache; daftarBarangTerurut = urutkanBarangAbjad([...daftarBarang]);
+        renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
+        info.textContent = `Dari simpanan: ${daftarBarang.length} barang`; info.className = "info cache";
+    }
+
+    let mulaiDari = 0;
+    let adaLagi = true;
+    let totalMuat = 0;
+    let semuaBarangBaru = [];
+    
+    info.innerHTML = 'Menyiapkan daftar barang...';
+    info.className = "info muat-bertahap";
+
+    while (adaLagi) {
+        try {
+            const res = await fetchDenganCobaUlang(
+                `${URL_PENYIMPANAN}?aksi=ambilBagianBarang&mulai=${mulaiDari}&batas=${JUMLAH_PER_AMBIL}`
+            );
+            const bagian = await res.json();
+
+            if (!bagian || !Array.isArray(bagian) || bagian.length === 0) {
+                adaLagi = false;
+                break;
+            }
+
+            semuaBarangBaru = semuaBarangBaru.concat(bagian);
+            totalMuat += bagian.length;
+            mulaiDari += bagian.length;
+
+            daftarBarang = semuaBarangBaru.map(item => ({
+                barisAsliDiSheet: item.barisAsliDiSheet, 
+                id: item.id, 
+                nama: item.nama || "Barang",
+                satuanBesar: item.satuanBesar || "Dus", 
+                modal: Number(item.modal) || 0,
+                hargaSatuan: Number(item.hargaSatuan) || 0, 
+                hargaGrosir: Number(item.hargaGrosir) || 0,
+                minGrosir: Number(item.minGrosir) || 999999, 
+                hargaDus: Number(item.hargaDus) || 0,
+                isiPerDus: Number(item.isiPerDus) || 0, 
+                stok: Number(item.stok) || 0, 
+                foto: item.foto || ""
+            }));
+            daftarBarangTerurut = urutkanBarangAbjad([...daftarBarang]);
+            
+            info.textContent = `Mengumpulkan ${totalMuat} jenis barang, sabar ya...`;
+            renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
+
+            await new Promise(t => setTimeout(t, 300));
+
+        } catch (err) {
+            console.log("Terhenti:", err.message);
+            adaLagi = false;
+        }
+    }
+
+    if (semuaBarangBaru.length > 0) {
+        simpanCacheBarang(daftarBarang);
+        info.textContent = `Terkumpul ${totalMuat} jenis barang, selamat berbelanja.`;
+        info.className = "info sukses";
+    } else if (!cache) {
+        daftarBarang = []; daftarBarangTerurut = [];
+        info.textContent = "Gagal memuat data..!!"; 
+        info.className = "info gagal";
+        renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
+    }
+    
+    sedangMemuat = false;
+}
+
+async function simpanKeInternet(data) {
+  try {
+      await fetch(URL_PENYIMPANAN, {
+          method: "POST", 
+          mode: "no-cors", 
+          headers: {"Content-Type": "application/json"}, 
+          body: JSON.stringify(data)
+      });
+      return true;
+  } catch (e) { return false; }
+}
+
+function ambilHarga(barang, jumlah) {
+  const satuan = barang.hargaSatuan || 0, grosir = barang.hargaGrosir || 0, minGrosir = barang.minGrosir || 999999;
+  const hargaDus = barang.hargaDus || 0, isiPerDus = barang.isiPerDus || 0;
+  if (isiPerDus > 0 && jumlah >= isiPerDus && hargaDus > 0) {
+    const hargaPerPcsDus = hargaDus / isiPerDus;
+    return (grosir > 0 && grosir < hargaPerPcsDus) ? grosir : hargaPerPcsDus;
+  }
+  if (jumlah >= minGrosir && grosir > 0) return grosir;
+  return satuan;
+}
+
+function tampilKonfirmasiHapusBarang(index) {
+    indeksHapusBarang = index;
+    document.getElementById('namaDihapus').textContent = daftarBarang[index].nama;
+    document.getElementById('penutupHapusBarang').style.display = 'block';
+    document.getElementById('kotakHapusBarang').style.display = 'block';
+}
+function tutupKonfirmasi() {
+    indeksHapusBarang = null;
+    document.getElementById('penutupHapusBarang').style.display = 'none';
+    document.getElementById('kotakHapusBarang').style.display = 'none';
+}
+
+async function lakukanHapusBarang() {
+    if (indeksHapusBarang === null) return;
+    const barang = daftarBarang[indeksHapusBarang];
+    tutupKonfirmasi();
+    try {
+        await fetch(URL_PENYIMPANAN, {
+            method: "POST", 
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ aksi: "hapus", data: { barisAsliDiSheet: barang.barisAsliDiSheet } })
+        });
+        daftarBarang.splice(indeksHapusBarang, 1);
+        daftarBarangTerurut = urutkanBarangAbjad([...daftarBarang]);
+        alert(`BERHASIL!\n"${barang.nama}" sudah dihapus.`);
+    } catch (e) { alert("Gagal hapus, coba lagi."); }
+    renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
+}
+
+async function muatRiwayat() {
+    try {
+        const res = await fetch(URL_PENYIMPANAN + "?aksi=ambilRiwayat", {cache: 'no-store'});
+        if (!res.ok) throw new Error("Gagal ambil");
+        const json = await res.json();
+        riwayatPenjualan = Array.isArray(json) ? json : (json.data || []);
+        document.getElementById('infoRiwayat').textContent = `${riwayatPenjualan.length} transaksi`;
+        document.getElementById('infoRiwayat').className = "info sukses";
+        tampilLaporan(); tampilRiwayatSampai = 5; riwayatTerpilih.clear(); renderRiwayat();
+    } catch (e) {
+        riwayatPenjualan = [];
+        document.getElementById('infoRiwayat').textContent = "Belum ada riwayat";
+        document.getElementById('infoRiwayat').className = "info gagal";
+    }
+}
+function cekScrollBawah() {
+    const kotak = document.getElementById('bungkusRiwayat');
+    if (kotak.scrollTop + kotak.clientHeight >= kotak.scrollHeight - 60) {
+        if (tampilRiwayatSampai < riwayatPenjualan.length) { tampilRiwayatSampai += 5; renderRiwayat(); }
+    }
+}
+function muatLagiRiwayat() { tampilRiwayatSampai += 5; renderRiwayat(); }
+function tampilLaporan() {
+    let skrg = new Date(), batas = new Date(), label;
+    if (periodeLaporan === 'hari') { batas = new Date(skrg.getFullYear(), skrg.getMonth(), skrg.getDate()); label = "Penjualan Hari Ini"; }
+    else if (periodeLaporan === 'minggu') { batas.setDate(skrg.getDate() - 7); label = "Penjualan 7 Hari Terakhir"; }
+    else { batas.setDate(skrg.getDate() - 30); label = "Penjualan 30 Hari Terakhir"; }
+    let filter = riwayatPenjualan.filter(r => {
+        const tgl = r.tanggalSimpan ? new Date(r.tanggalSimpan) : null;
+        return tgl && !isNaN(tgl.getTime()) && tgl >= batas;
+    });
+    if (filter.length === 0) { filter = riwayatPenjualan; label = "Semua Penjualan"; }
+    const omzet = filter.reduce((sum, r) => sum + (Number(r.total)||0), 0);
+    const untung = filter.reduce((sum, r) => sum + (Number(r.untung)||0), 0);
+    document.getElementById('labelPeriode').textContent = label;
+    document.getElementById('lapOmzet').textContent = omzet.toLocaleString('id-ID');
+    document.getElementById('lapUntung').textContent = untung.toLocaleString('id-ID');
+    document.getElementById('lapJumlah').textContent = filter.length;
+}
+function gantiPeriode(pilih) {
+    periodeLaporan = pilih;
+    document.querySelectorAll('.periode-btn').forEach(b => b.classList.remove('aktif'));
+    event.target.classList.add('aktif');
+    tampilLaporan();
+}
+function togglePilihRiwayat(idx, status) {
+    status ? riwayatTerpilih.add(idx) : riwayatTerpilih.delete(idx);
+    renderRiwayat();
+}
+function renderRiwayat() {
+    const wadah = document.getElementById('daftarRiwayat');
+    const tombolMuat = document.getElementById('tombolMuatRiwayat');
+    if (riwayatPenjualan.length === 0) {
+        wadah.innerHTML = '<p class="kosong">Belum ada transaksi.</p>';
+        tombolMuat.style.display = "none"; return;
+    }
+    const tampil = riwayatPenjualan.slice(0, tampilRiwayatSampai);
+    wadah.innerHTML = tampil.map((p, idxAsli) => {
+        const jenis = (p.jenis || "KASIR").toUpperCase();
+        const kelasJenis = jenis === "PESANAN" ? "pesanan" : "kasir";
+        const terpilihKelas = riwayatTerpilih.has(idxAsli) ? "terpilih" : "";
+        const labelJenis = jenis === "PESANAN" 
+            ? '<span class="jenis-pesanan">PESANAN</span>' 
+            : '<span class="jenis-kasir">KASIR</span>';
+        const nama = p.namaPelanggan || "Pelanggan Biasa";
+        const infoTambah = p.infoTambahan ? `<div style="font-size:11px; color:#666;">${p.infoTambahan}</div>` : "";
+        const barangTeks = Array.isArray(p.barang) ? p.barang.map(b => `• ${b.nama} × ${b.jumlah}`).join("<br>") : "";
+        return `<div class="riwayat-item ${kelasJenis} ${terpilihKelas}">
+            <input type="checkbox" class="cek-riwayat" ${riwayatTerpilih.has(idxAsli)?'checked':''} 
+                   onchange="togglePilihRiwayat(${idxAsli}, this.checked)">
+            <div style="margin-bottom:4px;">${labelJenis}<b>${nama}</b></div>
+            <div style="font-size:12px; color:#555;">${p.tanggal}</div>
+            ${infoTambah}<div style="margin:6px 0; font-size:12px;">${barangTeks}</div>
+            <div><b>Rp ${(p.total||0).toLocaleString('id-ID')}</b> | Laba: Rp ${(p.untung||0).toLocaleString('id-ID')}</div>
+        </div>`;
+    }).join('');
+    tombolMuat.style.display = tampilRiwayatSampai < riwayatPenjualan.length ? "block" : "none";
+}
+async function kirimPesananKeRiwayat(dataPesanan) {
+    try {
+        await fetch(URL_PENYIMPANAN, {
+            method: "POST", 
+            mode: "no-cors", 
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({aksi: "tambahPesanan", data: dataPesanan})
+        }); return true;
+    } catch (e) { return false; }
+}
+function renderKeranjang() {
+    const bagian = document.getElementById('bagianKeranjang');
+    const wadah = document.getElementById('wadahKeranjang');
+    const spanJumlah = document.getElementById('jumlahItemKeranjang');
+    let adaIsi = false, html = "", totalItem = 0;
+    for (let idx in keranjang) {
+        const jml = keranjang[idx] || 0;
+        if (jml > 0) {
+            adaIsi = true;
+            const brg = daftarBarang[idx];
+            const hrg = ambilHarga(brg, jml);
+            const subtotal = hrg * jml;
+            const maks = brg.stok || 999;
+            totalItem++;
+            html += `<div class="keranjang-item">
+                <div class="keranjang-nama">${brg.nama}</div>
+                <div>Rp ${hrg.toLocaleString('id-ID')} / pcs</div>
+                <div class="keranjang-ubah">
+                    <div class="keranjang-btn-group">
+                        <button onclick="kurang(${idx})">−</button>
+                        <b>${jml}</b>
+                        <button onclick="tambah(${idx}, ${maks})">+</button>
+                    </div>
+                    <button class="keranjang-hapus" onclick="hapusDariKeranjang(${idx})">🗑️</button>
+                </div>
+                <div class="keranjang-subtotal">Subtotal: Rp ${subtotal.toLocaleString('id-ID')}</div>
+            </div>`;
+        }
+    }
+    if (!adaIsi) { bagian.style.display = "none"; return; }
+    bagian.style.display = "block";
+    spanJumlah.textContent = `(${totalItem} barang)`;
+    wadah.innerHTML = html;
+}
+function hapusDariKeranjang(idx) { keranjang[idx] = 0; renderDaftarBarang(document.getElementById('kotakCari').value); }
+function renderDaftarBarang(kataKunci = '') {
+    const wadah = document.getElementById('daftarBarang');
+    wadah.innerHTML = '';
+    if (daftarBarangTerurut.length === 0) {
+        wadah.innerHTML = '<p class="kosong" style="grid-column:1/-1;">📭 Data barang gagal dimuat, tarik layar kebawah untuk mencobanya lagi.</p>';
+        document.getElementById('infoHalaman').textContent = 'Hal 1 dari 1';
+        document.getElementById('btnSebelum').disabled = true;
+        document.getElementById('btnSesudah').disabled = true;
+        renderKeranjang(); cekMinPesan(); return;
+    }
+    const filter = kataKunci 
+        ? daftarBarangTerurut.filter(b => b.nama.toLowerCase().includes(kataKunci.toLowerCase()))
+        : daftarBarangTerurut;
+    const totalHalaman = Math.ceil(filter.length / PER_HALAMAN) || 1;
+    halamanSekarang = Math.max(1, Math.min(halamanSekarang, totalHalaman));
+    const mulai = (halamanSekarang - 1) * PER_HALAMAN;
+    const tampil = filter.slice(mulai, mulai + PER_HALAMAN);
+    tampil.forEach(brg => {
+        const idx = daftarBarang.indexOf(brg);
+        const jml = keranjang[idx] || 0;
+        const hrg = ambilHarga(brg, jml);
+        const foto = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/200x150/eeeeee/888888?text=Foto+Barang';
+        const stokHabis = brg.stok <= 0;
+        const stokTeks = stokHabis ? `<div class="stok-info stok-habis">HABIS</div>` : `<div class="stok-info stok-aman">Stok: ${brg.stok}</div>`;
+        const grosirTeks = brg.hargaGrosir > 0 && brg.minGrosir > 0 ? `<div class="produk-harga-grosir">Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} ≥${brg.minGrosir}pcs</div>` : '';
+        const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
+        wadah.innerHTML += `<div class="produk ${stokHabis ? 'habis' : ''}">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy">
+            <div class="produk-nama">${brg.nama}</div>
+            <div class="produk-harga">Rp ${hrg.toLocaleString('id-ID')}</div>
+            ${grosirTeks}${dusTeks}${stokTeks}
+            <div class="jumlah">
+                <button onclick="kurang(${idx})" ${stokHabis?'disabled':''}>−</button>
+                <input type="number" value="${jml}" min="0" max="${brg.stok||999}" onchange="aturJumlah(${idx}, this.value)" ${stokHabis?'disabled':''}>
+                <button onclick="tambah(${idx})" ${stokHabis?'disabled':''}>+</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById('infoHalaman').textContent = `Halaman ${halamanSekarang} dari ${totalHalaman}`;
+    document.getElementById('btnSebelum').disabled = halamanSekarang <= 1;
+    document.getElementById('btnSesudah').disabled = halamanSekarang >= totalHalaman;
+    hitungTotal(); renderKeranjang(); cekMinPesan();
+}
+
+// ==============================================
+// 🚀 FUNGSI PREVIEW FOTO DENGAN KOMPRESI — CEGAH CRASH
+// ==============================================
+function pratinjauFoto(input) {
+    fotoTerpilih = null;
+    document.getElementById('pratinjau').style.display = 'none';
+    document.getElementById('infoFotoLama').style.display = 'none';
+
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    // 🔒 Cek ukuran file
+    if (file.size > MAKS_FILE_FOTO_MB * 1024 * 1024) {
+        alert(`Foto terlalu besar! Maksimal ${MAKS_FILE_FOTO_MB}MB.\nSilakan kompres dulu atau pilih foto lain.`);
+        input.value = '';
+        return;
+    }
+
+    const pembaca = new FileReader();
+    pembaca.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // 📏 Buat canvas untuk kompresi
+            const canvas = document.createElement('canvas');
+            let lebar = img.width;
+            let tinggi = img.height;
+
+            // Skala turunkan jika terlalu lebar
+            if (lebar > MAKS_LEBAR_FOTO) {
+                const rasio = MAKS_LEBAR_FOTO / lebar;
+                lebar = MAKS_LEBAR_FOTO;
+                tinggi = Math.round(img.height * rasio);
+            }
+
+            canvas.width = lebar;
+            canvas.height = tinggi;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, lebar, tinggi);
+
+            // 💾 Hasil kompresi
+            fotoTerpilih = canvas.toDataURL('image/jpeg', KUALITAS_FOTO);
+            document.getElementById('pratinjau').src = fotoTerpilih;
+            document.getElementById('pratinjau').style.display = 'block';
+
+            // 🧹 Bersihkan memori
+            img.src = '';
+            URL.revokeObjectURL?.(e.target.result);
+        };
+        img.src = e.target.result;
+    };
+    pembaca.readAsDataURL(file);
+}
+
+function toggleAdmin() { 
+    const panel = document.getElementById('adminPanel');
+    panel.classList.contains('active') ? tutupAdmin() : (panel.classList.add('active'), pinBenar = false, resetFormAdmin(), document.getElementById('pinForm').classList.add('active'));
+}
+function tutupAdmin() { 
+    pinBenar = false; resetFormAdmin();
+    document.getElementById('pinForm').classList.remove('active');
+    document.getElementById('adminForm').classList.remove('active');
+    document.getElementById('adminPanel').classList.remove('active');
+}
+async function cekPin() {
+    const inputPin = document.getElementById('inputPin').value.trim();
+    if (!inputPin) return;
+    document.getElementById('inputPin').disabled = true;
+    try {
+        const res = await fetchDenganCobaUlang(URL_PENYIMPANAN + "?aksi=cekPIN&pin=" + encodeURIComponent(inputPin));
+        const hasil = await res.json();
+        if (hasil.ok) {
+            pinBenar = true;
+            document.getElementById('pinForm').classList.remove('active');
+            document.getElementById('adminForm').classList.add('active');
+            renderDaftarAdmin(); await muatRiwayat();
+        } else { alert("PIN SALAH!"); document.getElementById('inputPin').value = ""; }
+    } catch(e) { alert("Gagal: " + e.message); }
+    document.getElementById('inputPin').disabled = false;
+}
+function resetFormAdmin() {
+    sedangUbahIndex = fotoTerpilih = fotoLamaSaatUbah = null;
+    document.getElementById('namaBarang').value = '';
+    document.getElementById('satuanBesar').value = '';
+    document.getElementById('modalBeli').value = '';
+    document.getElementById('hargaSatuan').value = '';
+    document.getElementById('hargaGrosir').value = '';
+    document.getElementById('minGrosir').value = '';
+    document.getElementById('hargaDus').value = '';
+    document.getElementById('isiPerDus').value = '';
+    document.getElementById('stokBarang').value = '';
+    document.getElementById('fotoBarang').value = '';
+    document.getElementById('pratinjau').style.display = 'none';
+    document.getElementById('infoFotoLama').style.display = 'none';
+    document.getElementById('btnSimpan').textContent = "TAMBAH BARANG";
+    document.getElementById('judulForm').textContent = "Tambah Barang Baru";
+    document.getElementById('btnBatal').classList.remove('active');
+    document.getElementById('infoSimpan').textContent = '';
+}
+function klikUbah(index) {
+    sedangUbahIndex = index;
+    const b = daftarBarang[index];
+    document.getElementById('namaBarang').value = b.nama || '';
+    document.getElementById('satuanBesar').value = b.satuanBesar || '';
+    document.getElementById('modalBeli').value = b.modal || '';
+    document.getElementById('hargaSatuan').value = b.hargaSatuan || '';
+    document.getElementById('hargaGrosir').value = b.hargaGrosir || '';
+    document.getElementById('minGrosir').value = b.minGrosir || '';
+    document.getElementById('hargaDus').value = b.hargaDus || '';
+    document.getElementById('isiPerDus').value = b.isiPerDus || '';
+    document.getElementById('stokBarang').value = b.stok !== undefined ? b.stok : '';
+    fotoLamaSaatUbah = b.foto || "";
+    fotoTerpilih = null;
+    
+    if (fotoLamaSaatUbah) {
+        document.getElementById('pratinjau').src = fotoLamaSaatUbah;
+        document.getElementById('pratinjau').style.display = 'block';
+        document.getElementById('infoFotoLama').style.display = 'block';
+        document.getElementById('fotoBarang').value = '';
+    }
+    
+    document.getElementById('btnSimpan').textContent = "SIMPAN PERUBAHAN";
+    document.getElementById('judulForm').textContent = "UBAH DATA BARANG";
+    document.getElementById('btnBatal').classList.add('active');
+}
+
+function batalUbah() { 
+    resetFormAdmin(); 
+}
+
+async function simpanBarang() {
+    const nama = document.getElementById('namaBarang').value.trim();
+    if (!nama) { alert('Isi Nama Barang!'); return; }
+
+    const dataBarang = {
+        nama: nama,
+        satuanBesar: document.getElementById('satuanBesar').value.trim() || "Dus",
+        modal: document.getElementById('modalBeli').value !== '' ? Number(document.getElementById('modalBeli').value) : null,
+        hargaSatuan: document.getElementById('hargaSatuan').value !== '' ? Number(document.getElementById('hargaSatuan').value) : null,
+        hargaGrosir: document.getElementById('hargaGrosir').value !== '' ? Number(document.getElementById('hargaGrosir').value) : null,
+        minGrosir: document.getElementById('minGrosir').value !== '' ? Number(document.getElementById('minGrosir').value) : null,
+        hargaDus: document.getElementById('hargaDus').value !== '' ? Number(document.getElementById('hargaDus').value) : null,
+        isiPerDus: document.getElementById('isiPerDus').value !== '' ? Number(document.getElementById('isiPerDus').value) : null,
+        stok: document.getElementById('stokBarang').value !== '' ? Number(document.getElementById('stokBarang').value) : null,
+        foto: fotoTerpilih || fotoLamaSaatUbah || null
+    };
+
+    const aksi = sedangUbahIndex !== null ? "ubah" : "tambah";
+    if (sedangUbahIndex !== null) {
+        dataBarang.barisAsliDiSheet = daftarBarang[sedangUbahIndex].barisAsliDiSheet;
+    }
+
+    const ok = await simpanKeInternet({aksi: aksi, data: dataBarang});
+    document.getElementById('infoSimpan').textContent = ok ? 'Tersimpan!' : 'Terkirim!';
+    document.getElementById('infoSimpan').className = ok ? 'info sukses' : 'info gagal';
+    resetFormAdmin();
+    await muatDariInternet();
+}
+
+function simpanDataPemesan() { 
+    localStorage.setItem('namaPemesan', document.getElementById('namaPemesan').value.trim());
+    localStorage.setItem('alamatPemesan', document.getElementById('alamatPemesan').value.trim());
+}
+function muatDataPemesan() {
+    document.getElementById('namaPemesan').value = localStorage.getItem('namaPemesan') || '';
+    document.getElementById('alamatPemesan').value = localStorage.getItem('alamatPemesan') || '';
+}
+
+function tambah(idx, maks = 999) {
+    const brg = daftarBarang[idx];
+    if (brg.stok <= 0) {
+        alert(`"${brg.nama}" HABIS!`);
+        return;
+    }
+    if ((keranjang[idx] || 0) < brg.stok) {
+        keranjang[idx] = (keranjang[idx] || 0) + 1;
+        renderDaftarBarang(document.getElementById('kotakCari').value);
+    } else {
+        alert(`Stok "${brg.nama}" cuma ${brg.stok}!`);
+    }
+}
+function kurang(idx) {
+    if ((keranjang[idx] || 0) > 0) {
+        keranjang[idx] = (keranjang[idx] || 0) - 1;
+        renderDaftarBarang(document.getElementById('kotakCari').value);
+    }
+}
+function aturJumlah(idx, nilai) {
+    const brg = daftarBarang[idx];
+    if (brg.stok <= 0 && Number(nilai) > 0) {
+        alert(`"${brg.nama}" HABIS!`);
+        keranjang[idx] = 0;
+        renderDaftarBarang(document.getElementById('kotakCari').value);
+        return;
+    }
+    const jml = Math.max(0, Math.min(Number(nilai) || 0, brg.stok || 999));
+    keranjang[idx] = jml;
+    renderDaftarBarang(document.getElementById('kotakCari').value);
+}
+
+function hitungTotal() {
+    let total = 0;
+    for (let idx in keranjang) {
+        const jml = keranjang[idx];
+        if (jml > 0) {
+            const brg = daftarBarang[idx];
+            total += ambilHarga(brg, jml) * jml;
+        }
+    }
+    document.getElementById('totalBayar').textContent = total.toLocaleString('id-ID');
+    return total;
+}
+
+function cekMinPesan() {
+    const total = hitungTotal();
+    const peringatan = document.getElementById('peringatanMin');
+    const tombolKirim = document.getElementById('btnKirimWA');
+
+    if (total === 0) {
+        peringatan.style.display = 'none';
+        tombolKirim.disabled = true;
+    } else if (total < MINIMAL_PESANAN) {
+        peringatan.textContent = `Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')} masih kurang ni Boss!`;
+        peringatan.style.display = 'block';
+        tombolKirim.disabled = true;
+    } else {
+        peringatan.style.display = 'none';
+        tombolKirim.disabled = false;
+    }
+}
+
+function cariBarang() {
+    halamanSekarang = 1;
+    renderDaftarBarang(document.getElementById('kotakCari').value);
+}
+function cariBarangAdmin() {
+    renderDaftarAdmin();
+}
+function gantiHalaman(loncat) {
+    const posisiTetap = window.scrollY;
+    halamanSekarang += loncat;
+    renderDaftarBarang(document.getElementById('kotakCari').value);
+    setTimeout(() => {
+        window.scrollTo({ top: posisiTetap, behavior: 'auto' });
+    }, 20);
+}
+function renderDaftarAdmin() {
+    const kata = document.getElementById('kotakCariAdmin').value.trim().toLowerCase();
+    const wadah = document.getElementById('daftarAdmin');
+    const filter = kata 
+        ? daftarBarangTerurut.filter(b => b.nama.toLowerCase().includes(kata))
+        : daftarBarangTerurut;
+    
+    wadah.innerHTML = filter.map((b) => {
+        const idx = daftarBarang.indexOf(b);
+        return `
+        <div class="barang-admin">
+            <span>${b.nama} ${b.stok <= 0 ? '(HABIS)' : ''}</span>
+            <span>
+                <button class="btn-ubah" onclick="klikUbah(${idx})">Ubah</button>
+                <button class="btn-hapus" onclick="tampilKonfirmasiHapusBarang(${idx})">Hapus</button>
+            </span>
+        </div>`;
+    }).join('');
+}
+
+async function kirimKeWA() {
+    const namaPesan = document.getElementById('namaPemesan').value.trim();
+    const alamat = document.getElementById('alamatPemesan').value.trim();
+
+    if (!namaPesan || !alamat) {
+        alert("Isi dulu Nama dan Alamat/Lokasi!");
+        return;
+    }
+
+    const daftarPesanan = [];
+    let teksPesanan = "";
+    let totalBayar = 0;
+    let totalModal = 0;
+
+    for (let idx in keranjang) {
+        const jml = keranjang[idx];
+        if (jml > 0) {
+            const brg = daftarBarang[idx];
+            if (brg.stok <= 0) {
+                alert(`"${brg.nama}" SUDAH HABIS! Hapus dari keranjang dulu.`);
+                return;
+            }
+            if (jml > brg.stok) {
+                alert(`Stok "${brg.nama}" cuma ${brg.stok}! Kurangi jumlahnya.`);
+                return;
+            }
+            const hrg = ambilHarga(brg, jml);
+            const subtotal = hrg * jml;
+            const modalSatuan = Number(brg.modal) || 0;
+            totalBayar += subtotal;
+            totalModal += modalSatuan * jml;
+
+            daftarPesanan.push({
+                nama: brg.nama,
+                jumlah: jml,
+                harga: hrg,
+                subtotal: subtotal
+            });
+
+            teksPesanan += `${brg.nama} x ${jml} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
+        }
+    }
+
+    if (daftarPesanan.length === 0) {
+        alert("Belum ada barang yang dipesan!");
+        return;
+    }
+
+    if (totalBayar < MINIMAL_PESANAN) {
+        alert(`Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}!\nTambah barang dulu.`);
+        return;
+    }
+
+    const untung = totalBayar - totalModal;
+    const sekarang = new Date();
+    const tglTeks = sekarang.toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
+    const tglSimpan = sekarang.toISOString();
+
+    const pesanWA = `PESANAN BARU
+
+Nama : ${namaPesan}
+--------------------
+Alamat/lokasi : ${alamat}
+--------------------
+Waktu pemesanan : ${tglTeks}
+
+----------------------------------------
+${teksPesanan}
+----------------------------------------
+TOTAL : Rp ${totalBayar.toLocaleString('id-ID')}
+----------------------------------------
+
+Tolong segera konfirmasi pesanan saya! 😊`;
+
+    const dataPesanan = {
+        jenis: "PESANAN",
+        tanggal: tglTeks,
+        namaPelanggan: namaPesan,
+        infoTambahan: alamat,
+        barang: daftarPesanan,
+        total: totalBayar,
+        modal: totalModal,
+        untung: untung,
+        catatan: "",
+        tanggalSimpan: tglSimpan
+    };
+
+    await kirimPesananKeRiwayat(dataPesanan);
+    simpanDataPemesan();
+    keranjang = {};
+    renderDaftarBarang();
+
+    const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
+    window.open(urlWA, '_blank');
+}
+
+window.onload = function() {
+    muatDataPemesan();
+    muatDariInternet();
+};
+</script>
+
+</body>
+</html>
