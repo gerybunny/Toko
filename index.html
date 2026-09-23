@@ -1009,7 +1009,6 @@ function renderDaftarAdmin() {
 let sedangMengirim = false;
 
 async function kirimKeWA() {
-    // 🔒 KUNCI PALING AWAL — TIDAK ADA YANG LEWAT!
     if (sedangMengirim) {
         alert("Sedang diproses, tunggu sebentar ya!");
         return;
@@ -1059,9 +1058,11 @@ async function kirimKeWA() {
             totalBayar += subtotal;
             totalModal += modalSatuan * jml;
 
+            // ✅ PENTING: kirim satuanPilih biar stok berkurang!
             daftarPesanan.push({
                 nama: brg.nama,
                 jumlah: jml,
+                satuanPilih: 'pcs',  // 👈 TAMBAH INI
                 harga: hrg,
                 subtotal: subtotal
             });
@@ -1120,6 +1121,10 @@ Tolong segera konfirmasi pesanan saya! 😊`;
 
     try {
         await kirimPesananKeRiwayat(dataPesanan);
+        
+        // ✅ Muat ulang dari server → stok langsung terbaru
+        await muatDariInternet();
+        
         simpanDataPemesan();
         keranjang = {};
         renderDaftarBarang();
@@ -1138,7 +1143,7 @@ Tolong segera konfirmasi pesanan saya! 😊`;
                 btn.disabled = false;
                 btn.textContent = "KIRIM PESANAN KE TOKO";
             }
-        }, 20000); // ⏳ 20 detik
+        }, 20000);
     }
 }
 
