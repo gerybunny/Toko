@@ -1005,7 +1005,16 @@ function renderDaftarAdmin() {
     }).join('');
 }
 
+// 🔒 Cegah klik ganda — TARUH DI LUAR FUNGSI, PALING ATAS
+let sedangMengirim = false;
+
 async function kirimKeWA() {
+    // 🔒 Kalau sedang diproses, TOLAK klik berikutnya
+    if (sedangMengirim) {
+        alert("Sedang diproses, tunggu sebentar ya!");
+        return;
+    }
+
     const namaPesan = document.getElementById('namaPemesan').value.trim();
     const alamat = document.getElementById('alamatPemesan').value.trim();
 
@@ -1024,11 +1033,11 @@ async function kirimKeWA() {
         if (jml > 0) {
             const brg = daftarBarang[idx];
             if (brg.stok <= 0) {
-                alert(`"${brg.nama}" SUDAH HABIS! Hapus dari keranjang dulu.`);
+                alert("${brg.nama}" SUDAH HABIS! Hapus dari keranjang dulu.);
                 return;
             }
             if (jml > brg.stok) {
-                alert(`Stok "${brg.nama}" cuma ${brg.stok}! Kurangi jumlahnya.`);
+                alert(Stok "${brg.nama}" cuma ${brg.stok}! Kurangi jumlahnya.);
                 return;
             }
             const hrg = ambilHarga(brg, jml);
@@ -1044,7 +1053,7 @@ async function kirimKeWA() {
                 subtotal: subtotal
             });
 
-            teksPesanan += `${brg.nama} x ${jml} = Rp ${subtotal.toLocaleString('id-ID')}\n`;
+            teksPesanan += ${brg.nama} x ${jml} = Rp ${subtotal.toLocaleString('id-ID')}\n;
         }
     }
 
@@ -1054,8 +1063,16 @@ async function kirimKeWA() {
     }
 
     if (totalBayar < MINIMAL_PESANAN) {
-        alert(`Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}!\nTambah barang dulu.`);
+        alert(Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}!\nTambah barang dulu.);
         return;
+    }
+
+    // ✅ KUNCI TOMBOL SEKARANG
+    sedangMengirim = true;
+    const btn = document.getElementById('btnKirimWA');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "⏳ Sedang Mengirim...";
     }
 
     const untung = totalBayar - totalModal;
@@ -1063,7 +1080,7 @@ async function kirimKeWA() {
     const tglTeks = sekarang.toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
     const tglSimpan = sekarang.toISOString();
 
-    const pesanWA = `PESANAN BARU
+    const pesanWA = PESANAN BARU
 
 Nama : ${namaPesan}
 --------------------
@@ -1077,7 +1094,7 @@ ${teksPesanan}
 TOTAL : Rp ${totalBayar.toLocaleString('id-ID')}
 ----------------------------------------
 
-Tolong segera konfirmasi pesanan saya! 😊`;
+Tolong segera konfirmasi pesanan saya! 😊;
 
     const dataPesanan = {
         jenis: "PESANAN",
@@ -1092,13 +1109,27 @@ Tolong segera konfirmasi pesanan saya! 😊`;
         tanggalSimpan: tglSimpan
     };
 
-    await kirimPesananKeRiwayat(dataPesanan);
-    simpanDataPemesan();
-    keranjang = {};
-    renderDaftarBarang();
+    try {
+        await kirimPesananKeRiwayat(dataPesanan);
+        simpanDataPemesan();
+        keranjang = {};
+        renderDaftarBarang();
 
-    const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
-    window.open(urlWA, '_blank');
+        const urlWA = https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)};
+        window.open(urlWA, '_blank');
+
+    } catch (e) {
+        alert("Ada gangguan jaringan, coba lagi ya!");
+    } finally {
+        // ✅ BUKA KEMBALI SETELAH 20 DETIK
+        setTimeout(() => {
+            sedangMengirim = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "KIRIM PESANAN KE TOKO";
+            }
+        }, 20000); // ⏳ 20 detik
+    }
 }
 
 window.onload = function() {
