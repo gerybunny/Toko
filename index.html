@@ -19,9 +19,11 @@
         body {background: #f2f2f2; padding:10px; max-width:480px; margin:0 auto;}
         
         .header {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            color:white; padding:18px; text-align:center; 
-            border-radius:12px; margin-bottom:15px;
+           background: #ffffffff;
+           padding: 8px; 
+           text-align: center; 
+           border-radius: 12px; 
+           margin-bottom: 15px;
         }
         .header-kelola {cursor:default; user-select:none;}
 
@@ -208,9 +210,11 @@
 </div>
 
 <div class="header header-kelola" onclick="toggleAdmin()">
-    <h2>🛒 Toko Bp. Aman</h2>
-    <p>Pesan barang mudah & cepat</p>
-    <div id="infoMuat" class="info">Sabar, lagi memuat data...</div>
+    <!-- BANNER GAMBAR DARI INTERNET — Tampil di Browser & Aplikasi! -->
+    <img src="https://raw.githubusercontent.com/gerybunny/Toko/fb94469ca36222b2cb1ed79cbddae7dda5d783ba/IMG-20210623-WA0000.jpg" 
+         alt="Toko Bp. Aman" 
+         style="width:100%; height:auto; max-height:100px; object-fit:contain; border-radius:12px;">
+    <div id="infoMuat" class="info" style="margin-top:8px;">Sabar, lagi memuat data...</div>
 </div>
 
 <div class="admin-panel" id="adminPanel">    
