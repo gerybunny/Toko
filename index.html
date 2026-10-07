@@ -394,6 +394,14 @@
 </head>
 <body>
 
+<!-- MODAL PERINGATAN / POPUP CUSTOM (TANPA URL WEBPAGE) -->
+<div id="penutupModalPesan" class="penutup-layar" onclick="tutupPesanPeringatan()"></div>
+<div id="kotakModalPesan" class="kotak-konfirmasi" style="border-color:#007bff;">
+    <h4 id="judulModalPesan" style="color:#333; margin-bottom:10px;">TOKO BP. AMAN</h4>
+    <p id="isiModalPesan" style="font-size:13px; color:#555; margin:12px 0; line-height:1.4;"></p>
+    <button class="btn-simpan" style="width:100%; margin-top:10px; background:#007bff;" onclick="tutupPesanPeringatan()">OKE</button>
+</div>
+
 <!-- KONFIRMASI HAPUS -->
 <div id="penutupHapusBarang" class="penutup-layar" onclick="tutupKonfirmasi()"></div>
 <div id="kotakHapusBarang" class="kotak-konfirmasi">
@@ -528,7 +536,7 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbwTQEolvUobuROR
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
 const JUMLAH_PER_AMBIL = 10;
-const JUMLAH_PER_HALAMAN = 12; // Jumlah barang yang dirakit di layar setiap kali scroll ke bawah
+const JUMLAH_PER_HALAMAN = 12;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
 const KUALITAS_FOTO = 0.8;
@@ -548,9 +556,21 @@ let kataKunciAktif = '';
 let timernyaCari = null;
 let timernyaCariAdmin = null;
 
-// VARIABEL PAGINATION / SCROLL
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
+
+// === FUNGSI POPUP CUSTOM TANPA ALAMAT WEBPAGE ===
+function tampilPesan(pesan, judul = "TOKO BP. AMAN") {
+    document.getElementById('judulModalPesan').textContent = judul;
+    document.getElementById('isiModalPesan').innerHTML = pesan;
+    document.getElementById('penutupModalPesan').style.display = 'block';
+    document.getElementById('kotakModalPesan').style.display = 'block';
+}
+
+function tutupPesanPeringatan() {
+    document.getElementById('penutupModalPesan').style.display = 'none';
+    document.getElementById('kotakModalPesan').style.display = 'none';
+}
 
 // === CEK STATUS TOKO OTOMATIS ===
 function perbaruiStatusToko() {
@@ -682,14 +702,14 @@ function pilihMetodeGPS() {
 }
 function ambilLokasiDariAplikasi(lat, lng) {
     document.getElementById('alamatPemesan').value = `📍 ${lat}, ${lng}\nhttps://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-    alert('Lokasi berhasil diambil!');
+    tampilPesan("Lokasi berhasil diambil!");
 }
 async function ambilLokasiGPS() {
     const btn = document.querySelector('.btn-gps-mini');
     const inputAlamat = document.getElementById('alamatPemesan');
     btn.innerHTML = "⏳ Wait"; btn.disabled = true;
     if (!navigator.geolocation) {
-        alert("Perangkat tidak mendukung GPS!");
+        tampilPesan("Perangkat tidak mendukung GPS!");
         btn.innerHTML = "📍 Lokasi"; btn.disabled = false; return;
     }
     try {
@@ -703,10 +723,10 @@ async function ambilLokasiGPS() {
         setTimeout(() => { btn.innerHTML = "📍 Lokasi"; btn.disabled = false; }, 2500);
     } catch (err) {
         let pesan = "Gagal ambil lokasi";
-        if (err.code === 1) pesan = "Izin lokasi DITOLAK!";
+        if (err.code === 1) pesan = "⚠️ <b>GPS belum aktif!</b><br>Nyalain dulu, biar kita tau lokasi kamu";
         else if (err.code === 2) pesan = "Lokasi tidak ditemukan!";
         else if (err.code === 3) pesan = "Terlalu lama menunggu!";
-        alert(pesan);
+        tampilPesan(pesan);
         btn.innerHTML = "📍 Lokasi"; btn.disabled = false;
     }
 }
@@ -741,7 +761,7 @@ async function fetchDenganCobaUlang(url, maks=3) {
     }
 }
 
-// === MUAT DATA LATAR BELAKANG (TANPA MACET) ===
+// === MUAT DATA ===
 async function muatDariInternet() {
     if (sedangMemuat) return; sedangMemuat = true;
     const info = document.getElementById('infoMuat');
@@ -792,7 +812,6 @@ async function muatDariInternet() {
             
             info.textContent = `Mengumpulkan data (${totalMuat} barang)...`;
             
-            // Tampilkan barang di layar tanpa merusak antrean
             renderDaftarBarang(kataKunciAktif); 
             renderDaftarAdmin(); 
             tampilkanBarangHabis();
@@ -834,7 +853,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG BERTAHAP (PAGINATION) ===
+// === RENDER DAFTAR BARANG BERTAHAP ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -847,7 +866,6 @@ function renderDaftarBarang(kata='') {
         perbaruiRingkasanKeranjang(); return;
     }
     
-    // Pencarian PINTAR: Mencari dari KESELURUHAN data barang di memori
     const filter = kataKunciAktif 
         ? daftarBarang.filter(b => b.nama.toLowerCase().includes(kataKunciAktif.toLowerCase())) 
         : daftarBarang;
@@ -858,7 +876,6 @@ function renderDaftarBarang(kata='') {
         perbaruiRingkasanKeranjang(); return;
     }
 
-    // Jika sedang mencari, tampilkan semua hasil cari. Jika tidak, batasi sesuai scroll (misal 12 dulu)
     const barangDitampilkan = kataKunciAktif ? filter : filter.slice(0, batasTampilSekarang);
 
     barangDitampilkan.forEach(brg => {
@@ -893,10 +910,8 @@ function renderDaftarBarang(kata='') {
     perbaruiRingkasanKeranjang();
 }
 
-// OTOMATIS TAMBAH BARANG SAAT SCROLL KE BAWAH
 window.onscroll = function() {
-    if (kataKunciAktif) return; // Jika sedang mencari, tidak perlu infinite scroll
-    
+    if (kataKunciAktif) return;
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 250) {
         if (!sedangTambahBarangScroll && batasTampilSekarang < daftarBarang.length) {
             sedangTambahBarangScroll = true;
@@ -942,11 +957,10 @@ function kurang(idx) {
     perbaruiRingkasanKeranjang();
 }
 
-// FUNGSI PENCARIAN
 function cariBarangGunakanJeda() {
     clearTimeout(timernyaCari);
     timernyaCari = setTimeout(() => {
-        batasTampilSekarang = JUMLAH_PER_HALAMAN; // Reset hitungan scroll saat mulai mencari
+        batasTampilSekarang = JUMLAH_PER_HALAMAN;
         cariBarang();
     }, 200);
 }
@@ -1000,8 +1014,8 @@ async function cekPin() {
         const res = await fetchDenganCobaUlang(URL_PENYIMPANAN + "?aksi=cekPIN&pin=" + encodeURIComponent(inputPin));
         const hasil = await res.json();
         if (hasil.ok) { pinBenar = true; bukaPanelAdmin(); }
-        else { alert("PIN SALAH!"); document.getElementById('inputPin').value = ""; }
-    } catch(e) { alert("Gagal verifikasi PIN: " + e.message); }
+        else { tampilPesan("PIN SALAH!", "ADMIN"); document.getElementById('inputPin').value = ""; }
+    } catch(e) { tampilPesan("Gagal verifikasi PIN: " + e.message, "ADMIN"); }
 }
 
 function renderDaftarAdmin(kata='') {
@@ -1029,8 +1043,8 @@ async function lakukanHapusBarang() {
     try {
         await fetch(URL_PENYIMPANAN, {method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify({aksi:"hapus", data:{barisAsliDiSheet:b.barisAsliDiSheet}})});
         daftarBarang.splice(indeksHapusBarang,1); 
-        alert(`Berhasil dihapus: ${b.nama}`);
-    } catch { alert("Gagal hapus!"); }
+        tampilPesan(`Berhasil dihapus: ${b.nama}`);
+    } catch { tampilPesan("Gagal hapus!"); }
     renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
 }
 
@@ -1076,7 +1090,7 @@ function resetFormAdmin() {
 
 function pratinjauFoto(input) {
     const f = input.files[0]; if (!f) return;
-    if (f.size > MAKS_FILE_FOTO_MB*1024*1024) { alert(`Foto terlalu besar! Maksimal ${MAKS_FILE_FOTO_MB}MB`); input.value = ""; return; }
+    if (f.size > MAKS_FILE_FOTO_MB*1024*1024) { tampilPesan(`Foto terlalu besar! Maksimal ${MAKS_FILE_FOTO_MB}MB`); input.value = ""; return; }
     const pembaca = new FileReader();
     pembaca.onload = e => {
         const img = new Image();
@@ -1097,7 +1111,7 @@ function pratinjauFoto(input) {
 
 async function simpanBarang() {
     const nama = document.getElementById('namaBarang').value.trim();
-    if (!nama) { alert("Nama barang wajib diisi!"); return; }
+    if (!nama) { tampilPesan("Nama barang wajib diisi!"); return; }
     
     document.getElementById('infoSimpan').textContent = "Menyimpan data...";
     
@@ -1230,7 +1244,7 @@ async function kirimKeWA() {
     const alamat = document.getElementById('alamatPemesan').value.trim();
 
     if (!namaPesan || !alamat) {
-        alert("Mohon isi Nama dan Alamat/Lokasi Anda!");
+        tampilPesan("Mohon isi Nama dan Alamat/Lokasi Anda!");
         return;
     }
 
@@ -1262,12 +1276,12 @@ async function kirimKeWA() {
     }
 
     if (daftarPesanan.length === 0) {
-        alert("Belum ada barang yang dipesan!");
+        tampilPesan("Belum ada barang yang dipesan!");
         return;
     }
 
     if (totalBayar < MINIMAL_PESANAN) {
-        alert(`Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}!\nTambah barang dulu.`);
+        tampilPesan(`Minimal pesanan Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}!\nTambah barang dulu.`);
         return;
     }
 
@@ -1298,7 +1312,7 @@ async function kirimKeWA() {
         const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
         window.open(urlWA, '_blank');
     } catch (e) {
-        alert("Gagal terhubung, coba lagi!");
+        tampilPesan("Gagal terhubung, coba lagi!");
     }
 }
 
