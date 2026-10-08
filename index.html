@@ -394,7 +394,7 @@
 </head>
 <body>
 
-<!-- MODAL PERINGATAN / POPUP CUSTOM (TANPA URL WEBPAGE) -->
+<!-- MODAL PERINGATAN / POPUP CUSTOM -->
 <div id="penutupModalPesan" class="penutup-layar" onclick="tutupPesanPeringatan()"></div>
 <div id="kotakModalPesan" class="kotak-konfirmasi" style="border-color:#007bff;">
     <h4 id="judulModalPesan" style="color:#333; margin-bottom:10px;">TOKO BP. AMAN</h4>
@@ -448,7 +448,7 @@
 
     <div id="infoMuat" class="info-muat">Memuat data...</div>
 
-    <input type="text" class="search-box" id="kotakCari" placeholder="🔍 Cari barang..." oninput="cariBarangGunakanJeda()">
+    <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
 </div>
 
 <!-- DAFTAR BARANG -->
@@ -461,10 +461,10 @@
 <div class="bawah-ringkas" id="bagianFormPemesan">
     <div id="peringatanMin" class="peringatan"></div>
     <div class="baris-pemesan-4kolom">
-        <input type="text" id="namaPemesan" class="input-fleksibel" placeholder="*Nama Anda">
-        <input type="text" id="alamatPemesan" class="input-fleksibel" placeholder="*Alamat/Lokasi">
+        <input type="text" id="namaPemesan" class="input-fleksibel" placeholder="*Nama">
+        <input type="text" id="alamatPemesan" class="input-fleksibel" placeholder="*Alamat">
         <button type="button" class="btn-aksi-mini btn-gps-mini" onclick="pilihMetodeGPS()">📍 Lokasi</button>
-        <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()">📲 Kirim</button>
+        <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()">📲 Order</button>
     </div>
 </div>
 
@@ -502,7 +502,7 @@
         <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ffc107;">
         
         <h4>Kelola Daftar Barang</h4>
-        <input type="text" class="search-box search-box-admin" id="kotakCariAdmin" placeholder="🔍 Cari barang di admin..." oninput="cariBarangAdminGunakanJeda()">
+        <input type="search" class="search-box search-box-admin" id="kotakCariAdmin" placeholder="🔍 Cari produk..." onkeyup="cekEnterCariAdmin(event)" onsearch="cekSearchAdminClear()">
         <div id="daftarAdmin" style="max-height: 220px; overflow-y: auto; margin-top: 8px;"></div>
         
         <div class="riwayat-bagian">
@@ -553,11 +553,38 @@ let periodeLaporan = 'hari';
 let tampilRiwayatSampai = 5;
 let sedangMemuat = false;
 let kataKunciAktif = '';
-let timernyaCari = null;
-let timernyaCariAdmin = null;
 
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
+
+// === PENCARIAN MANUAL HANYA SAAT ENTER/CARI DIKLIK ===
+function cekEnterCari(event) {
+    if (event.key === "Enter" || event.keyCode === 13) {
+        document.getElementById('kotakCari').blur();
+        batasTampilSekarang = JUMLAH_PER_HALAMAN;
+        cariBarang();
+    }
+}
+
+function cekSearchClear() {
+    if (document.getElementById('kotakCari').value === "") {
+        batasTampilSekarang = JUMLAH_PER_HALAMAN;
+        cariBarang();
+    }
+}
+
+function cekEnterCariAdmin(event) {
+    if (event.key === "Enter" || event.keyCode === 13) {
+        document.getElementById('kotakCariAdmin').blur();
+        cariBarangAdmin();
+    }
+}
+
+function cekSearchAdminClear() {
+    if (document.getElementById('kotakCariAdmin').value === "") {
+        cariBarangAdmin();
+    }
+}
 
 // === FUNGSI POPUP CUSTOM TANPA ALAMAT WEBPAGE ===
 function tampilPesan(pesan, judul = "TOKO BP. AMAN") {
@@ -692,7 +719,21 @@ function hapusDariKeranjang(i) {
     perbaruiRingkasanKeranjang();
 }
 
-// === GPS ===
+// === GPS (LOKASI DITAMBAHKAN DI BARIS BARU) ===
+function gabungAlamatDanLokasi(lat, lng) {
+    const inputAlamat = document.getElementById('alamatPemesan');
+    const alamatLama = inputAlamat.value.trim();
+    const urlPeta = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    
+    if (alamatLama !== "") {
+        // Jika sudah ada alamat manual, tambahkan lokasi di baris baru
+        inputAlamat.value = `${alamatLama}\n📍 ${lat}, ${lng}\n${urlPeta}`;
+    } else {
+        // Jika belum ada alamat manual
+        inputAlamat.value = `📍 ${lat}, ${lng}\n${urlPeta}`;
+    }
+}
+
 function pilihMetodeGPS() {
     if (typeof Android !== 'undefined' && Android.ambilLokasiDariGPS) {
         Android.ambilLokasiDariGPS();
@@ -700,13 +741,14 @@ function pilihMetodeGPS() {
         ambilLokasiGPS();
     }
 }
+
 function ambilLokasiDariAplikasi(lat, lng) {
-    document.getElementById('alamatPemesan').value = `📍 ${lat}, ${lng}\nhttps://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    gabungAlamatDanLokasi(lat, lng);
     tampilPesan("Lokasi berhasil diambil!");
 }
+
 async function ambilLokasiGPS() {
     const btn = document.querySelector('.btn-gps-mini');
-    const inputAlamat = document.getElementById('alamatPemesan');
     btn.innerHTML = "⏳ Wait"; btn.disabled = true;
     if (!navigator.geolocation) {
         tampilPesan("Perangkat tidak mendukung GPS!");
@@ -718,7 +760,7 @@ async function ambilLokasiGPS() {
         });
         const lat = posisi.coords.latitude;
         const lng = posisi.coords.longitude;
-        inputAlamat.value = `📍 ${lat}, ${lng}\nhttps://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        gabungAlamatDanLokasi(lat, lng);
         btn.innerHTML = "✅ Ok";
         setTimeout(() => { btn.innerHTML = "📍 Lokasi"; btn.disabled = false; }, 2500);
     } catch (err) {
@@ -853,7 +895,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG BERTAHAP ===
+// === RENDER DAFTAR BARANG ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -957,16 +999,8 @@ function kurang(idx) {
     perbaruiRingkasanKeranjang();
 }
 
-function cariBarangGunakanJeda() {
-    clearTimeout(timernyaCari);
-    timernyaCari = setTimeout(() => {
-        batasTampilSekarang = JUMLAH_PER_HALAMAN;
-        cariBarang();
-    }, 200);
-}
-
 function cariBarang() {
-    renderDaftarBarang(document.getElementById('kotakCari').value);
+    renderDaftarBarang(document.getElementById('kotakCari').value.trim());
 }
 
 function cekMinPesan() {
@@ -1026,14 +1060,10 @@ function renderDaftarAdmin(kata='') {
     }).join('') : '<p style="text-align:center; color:#888; padding:15px;">Belum ada barang</p>';
 }
 
-function cariBarangAdminGunakanJeda() {
-    clearTimeout(timernyaCariAdmin);
-    timernyaCariAdmin = setTimeout(() => {
-        cariBarangAdmin();
-    }, 200);
+function cariBarangAdmin() { 
+    renderDaftarAdmin(document.getElementById('kotakCariAdmin').value.trim()); 
 }
 
-function cariBarangAdmin() { renderDaftarAdmin(document.getElementById('kotakCariAdmin').value); }
 function tampilKonfirmasiHapusBarang(i) { indeksHapusBarang = i; document.getElementById('namaDihapus').textContent = daftarBarang[i].nama; document.getElementById('penutupHapusBarang').style.display = 'block'; document.getElementById('kotakHapusBarang').style.display = 'block'; }
 function tutupKonfirmasi() { indeksHapusBarang = null; document.getElementById('penutupHapusBarang').style.display = 'none'; document.getElementById('kotakHapusBarang').style.display = 'none'; }
 
