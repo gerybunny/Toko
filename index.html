@@ -352,7 +352,7 @@
         .total-modal { font-size: 18px; font-weight: bold; color: #128C7E; text-align: right; margin-bottom: 10px; }
         .keranjang-kosong { text-align: center; color: #888; padding: 30px 10px; }
 
-        /* === ADMIN PANEL === */
+        /* === ADMIN PANEL (TAMPILAN BERSIH HANYA KELOLA BARANG) === */
         .admin-panel {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: #fff9e6; z-index: 9999; overflow-y: auto;
@@ -374,16 +374,6 @@
         .search-box-admin { border-color: #ffc107; background: #fff9e6; margin: 6px 0; width: 100%; }
         .foto-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; margin: 5px 0; display: none; }
         .info-foto-lama { font-size: 12px; color: #28a745; display: none; }
-        
-        .riwayat-bagian { margin-top: 15px; border-top: 2px dashed #ffc107; padding-top: 12px; }
-        .bungkus-riwayat { max-height: 250px; overflow-y: auto; margin-top: 8px; }
-        .riwayat-item { background: white; padding: 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; }
-        .periode-btn { padding: 6px 10px; border: 1px solid #128C7E; background: white; color: #128C7E; border-radius: 6px; margin: 3px 2px; cursor: pointer; font-weight: bold; }
-        .periode-btn.aktif { background: #128C7E; color: white; }
-        .tombol-muat-riwayat { width: 100%; padding: 10px; margin-top: 8px; background: #ffc107; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .laporan-kotak { background: white; padding: 12px; border-radius: 8px; margin: 10px 0; }
-        .laporan-angka { font-size: 16px; font-weight: bold; color: #25D366; }
-        .laporan-angka.untung { color: #ff9800; }
 
         .penutup-layar { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 99998; display: none; }
         .kotak-konfirmasi { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; z-index: 99999; display: none; width: 90%; max-width: 320px; text-align: center; }
@@ -468,7 +458,7 @@
     </div>
 </div>
 
-<!-- PANEL ADMIN -->
+<!-- PANEL ADMIN (HANYA KELOLA BARANG & STOK) -->
 <div class="admin-panel" id="adminPanel">
     <div class="pin-form active" id="pinForm">
         <h4 style="text-align:center; margin-bottom:10px;">Masuk Panel Admin</h4>
@@ -503,28 +493,8 @@
         
         <h4>Kelola Daftar Barang</h4>
         <input type="search" class="search-box search-box-admin" id="kotakCariAdmin" placeholder="🔍 Cari produk..." onkeyup="cekEnterCariAdmin(event)" onsearch="cekSearchAdminClear()">
-        <div id="daftarAdmin" style="max-height: 220px; overflow-y: auto; margin-top: 8px;"></div>
+        <div id="daftarAdmin" style="max-height: 300px; overflow-y: auto; margin-top: 8px;"></div>
         
-        <div class="riwayat-bagian">
-            <h4>LAPORAN PENJUALAN</h4>
-            <div style="margin: 8px 0;">
-                <button class="periode-btn aktif" onclick="gantiPeriode('hari', this)">Hari Ini</button>
-                <button class="periode-btn" onclick="gantiPeriode('minggu', this)">7 Hari</button>
-                <button class="periode-btn" onclick="gantiPeriode('bulan', this)">30 Hari</button>
-            </div>
-            <div class="laporan-kotak">
-                <div id="labelPeriode" style="font-weight:bold; margin-bottom:5px;">Penjualan Hari Ini</div>
-                <div class="laporan-angka">Omzet: Rp <span id="lapOmzet">0</span></div>
-                <div class="laporan-angka untung">Laba: Rp <span id="lapUntung">0</span></div>
-                <small>Total Transaksi: <span id="lapJumlah">0</span></small>
-            </div>
-            <h4 style="margin-top:15px;">RIWAYAT TRANSAKSI</h4>
-            <div id="infoRiwayat" class="info-muat">Memuat...</div>
-            <div class="bungkus-riwayat" id="bungkusRiwayat" onscroll="cekScrollBawahRiwayat()">
-                <div id="daftarRiwayat"></div>
-            </div>
-            <button class="tombol-muat-riwayat" id="tombolMuatRiwayat" onclick="muatLagiRiwayat()" style="display:none;">MUAT LEBIH BANYAK...</button>
-        </div>
         <button class="btn-tolak" style="margin-top:15px; width:100%;" onclick="tutupAdmin()">Tutup Panel Admin</button>
     </div>
 </div>
@@ -543,14 +513,11 @@ const KUALITAS_FOTO = 0.8;
 
 let pinBenar = false;
 let daftarBarang = [];
-let riwayatPenjualan = [];
 let keranjang = {};
 let fotoTerpilih = null;
 let fotoLamaSaatUbah = null;
 let sedangUbahIndex = null;
 let indeksHapusBarang = null;
-let periodeLaporan = 'hari';
-let tampilRiwayatSampai = 5;
 let sedangMemuat = false;
 let kataKunciAktif = '';
 
@@ -726,10 +693,8 @@ function gabungAlamatDanLokasi(lat, lng) {
     const urlPeta = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     
     if (alamatLama !== "") {
-        // Jika sudah ada alamat manual, tambahkan lokasi di baris baru
         inputAlamat.value = `${alamatLama}\n📍 ${lat}, ${lng}\n${urlPeta}`;
     } else {
-        // Jika belum ada alamat manual
         inputAlamat.value = `📍 ${lat}, ${lng}\n${urlPeta}`;
     }
 }
@@ -1039,7 +1004,8 @@ function tutupAdmin() {
 function bukaPanelAdmin() {
     document.getElementById('pinForm').classList.remove('active');
     document.getElementById('adminForm').classList.add('active');
-    muatRiwayat(); renderDaftarAdmin(); tampilkanBarangHabis();
+    renderDaftarAdmin(); 
+    tampilkanBarangHabis();
 }
 async function cekPin() {
     const inputPin = document.getElementById('inputPin').value.trim();
@@ -1169,95 +1135,7 @@ async function simpanBarang() {
     await muatDariInternet();
 }
 
-// === RIWAYAT & WA ===
-async function muatRiwayat() {
-    try {
-        const res = await fetch(URL_PENYIMPANAN + "?aksi=ambilRiwayat", { cache: 'no-store' });
-        if (!res.ok) throw new Error("Gagal ambil");
-        const json = await res.json();
-        riwayatPenjualan = Array.isArray(json) ? json : (json.data || []);
-        document.getElementById('infoRiwayat').textContent = `${riwayatPenjualan.length} transaksi`;
-        tampilLaporan();
-        tampilRiwayatSampai = 5;
-        renderRiwayat();
-    } catch (e) {
-        riwayatPenjualan = [];
-        document.getElementById('infoRiwayat').textContent = "Belum ada riwayat";
-    }
-}
-
-function cekScrollBawahRiwayat() {
-    const kotak = document.getElementById('bungkusRiwayat');
-    if (kotak.scrollTop + kotak.clientHeight >= kotak.scrollHeight - 60) {
-        if (tampilRiwayatSampai < riwayatPenjualan.length) {
-            tampilRiwayatSampai += 5;
-            renderRiwayat();
-        }
-    }
-}
-function muatLagiRiwayat() { tampilRiwayatSampai += 5; renderRiwayat(); }
-
-function tampilLaporan() {
-    let skrg = new Date(), batas = new Date(), label;
-    if (periodeLaporan === 'hari') { batas = new Date(skrg.getFullYear(), skrg.getMonth(), skrg.getDate()); label = "Penjualan Hari Ini"; }
-    else if (periodeLaporan === 'minggu') { batas.setDate(skrg.getDate() - 7); label = "Penjualan 7 Hari Terakhir"; }
-    else { batas.setDate(skrg.getDate() - 30); label = "Penjualan 30 Hari Terakhir"; }
-
-    let filter = riwayatPenjualan.filter(r => {
-        const tgl = r.tanggalSimpan ? new Date(r.tanggalSimpan) : null;
-        return tgl && !isNaN(tgl.getTime()) && tgl >= batas;
-    });
-
-    if (filter.length === 0) { filter = riwayatPenjualan; label = "Semua Penjualan"; }
-
-    const omzet = filter.reduce((sum, r) => sum + (Number(r.total) || 0), 0);
-    const untung = filter.reduce((sum, r) => sum + (Number(r.untung) || 0), 0);
-
-    document.getElementById('labelPeriode').textContent = label;
-    document.getElementById('lapOmzet').textContent = omzet.toLocaleString('id-ID');
-    document.getElementById('lapUntung').textContent = untung.toLocaleString('id-ID');
-    document.getElementById('lapJumlah').textContent = filter.length;
-}
-
-function gantiPeriode(pilih, btn) {
-    periodeLaporan = pilih;
-    document.querySelectorAll('.periode-btn').forEach(b => b.classList.remove('aktif'));
-    if(btn) btn.classList.add('aktif');
-    tampilLaporan();
-}
-
-function renderRiwayat() {
-    const wadah = document.getElementById('daftarRiwayat');
-    const tombolMuat = document.getElementById('tombolMuatRiwayat');
-
-    if (riwayatPenjualan.length === 0) {
-        wadah.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Belum ada transaksi.</p>';
-        tombolMuat.style.display = "none";
-        return;
-    }
-
-    const tampil = riwayatPenjualan.slice(0, tampilRiwayatSampai);
-    wadah.innerHTML = tampil.map(p => {
-        const jenis = (p.jenis || "KASIR").toUpperCase();
-        const nama = p.namaPelanggan || "Pelanggan Biasa";
-        const infoTambah = p.infoTambahan ? `<div style="font-size:11px; color:#666;">${p.infoTambahan}</div>` : "";
-        const barangTeks = Array.isArray(p.barang) ? p.barang.map(b => `• ${b.nama} × ${b.jumlah}`).join("<br>") : "";
-
-        return `<div class="riwayat-item">
-            <div style="margin-bottom:4px;">
-                <span style="display:inline-block; background:${jenis==='PESANAN'?'#28a745':'#007bff'}; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:6px;">${jenis}</span>
-                <b>${nama}</b>
-            </div>
-            <div style="font-size:11px; color:#666;">${p.tanggal}</div>
-            ${infoTambah}
-            <div style="margin:6px 0; font-size:12px;">${barangTeks}</div>
-            <div><b>Rp ${(p.total||0).toLocaleString('id-ID')}</b> | Laba: Rp ${(p.untung||0).toLocaleString('id-ID')}</div>
-        </div>`;
-    }).join('');
-
-    tombolMuat.style.display = tampilRiwayatSampai < riwayatPenjualan.length ? "block" : "none";
-}
-
+// === PENGIRIMAN DATA PENJUALAN KE GOOGLE SHEETS (DIPERTAHANKAN UNTUK PANEL LAIN) ===
 async function kirimPesananKeRiwayat(dataPesanan) {
     try {
         await fetch(URL_PENYIMPANAN, {
