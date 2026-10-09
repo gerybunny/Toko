@@ -1173,6 +1173,11 @@ async function kirimPesananKeRiwayat(dataPesanan) {
 }
 
 async function kirimKeWA() {
+    const btnWA = document.getElementById('btnKirimWA');
+
+    // 1. Mencegah klik ganda jika tombol sedang proses
+    if (btnWA && btnWA.disabled) return;
+
     const namaPesan = document.getElementById('namaPemesan').value.trim();
     const alamat = document.getElementById('alamatPemesan').value.trim();
 
@@ -1218,6 +1223,12 @@ async function kirimKeWA() {
         return;
     }
 
+    // 2. Kunci tombol dan ubah tulisan jadi loading
+    if (btnWA) {
+        btnWA.disabled = true;
+        btnWA.innerText = "⏳";
+    }
+
     const untung = totalBayar - totalModal;
     const sekarang = new Date();
     const tglTeks = sekarang.toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
@@ -1246,14 +1257,15 @@ async function kirimKeWA() {
         window.open(urlWA, '_blank');
     } catch (e) {
         tampilPesan("Gagal terhubung, coba lagi!");
+    } finally {
+        // 3. Kembalikan tombol ke tulisan awal setelah selesai
+        if (btnWA) {
+            btnWA.disabled = false;
+            btnWA.innerText = "📲 Order";
+        }
     }
 }
 
-window.onload = function() {
-    perbaruiStatusToko();
-    setInterval(perbaruiStatusToko, 60000);
-    muatDariInternet();
-};
 </script>
 </body>
 </html>
