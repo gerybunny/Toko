@@ -236,20 +236,24 @@
             padding: 8px 10px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
             z-index: 90;
+            box-sizing: border-box;
         }
         .baris-pemesan-4kolom {
             display: flex;
             align-items: center;
             gap: 6px;
             width: 100%;
+            box-sizing: border-box;
         }
         .input-fleksibel {
-            flex: 1;
+            flex: 1 1 0%;
+            width: 0;
             min-width: 0;
-            padding: 8px 10px;
+            padding: 8px 6px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 13px;
+            box-sizing: border-box;
         }
         .input-fleksibel:focus {
             outline: none;
@@ -257,7 +261,7 @@
             background: #fff;
         }
         .btn-aksi-mini {
-            padding: 8px 6px;
+            padding: 8px 10px;
             border: none;
             border-radius: 6px;
             font-size: 12px;
@@ -265,9 +269,11 @@
             cursor: pointer;
             white-space: nowrap;
             height: 35px;
+            flex: 0 0 auto;
+            box-sizing: border-box;
         }
-        .btn-gps-mini { background: #007bff; color: white; flex: 0.9; }
-        .btn-wa-mini { background: #25D366; color: white; flex: 1.1; }
+        .btn-gps-mini { background: #007bff; color: white; }
+        .btn-wa-mini { background: #25D366; color: white; }
         .btn-wa-mini:disabled, .btn-gps-mini:disabled { background: #ccc; cursor: not-allowed; }
 
         .peringatan {
@@ -451,8 +457,8 @@
 <div class="bawah-ringkas" id="bagianFormPemesan">
     <div id="peringatanMin" class="peringatan"></div>
     <div class="baris-pemesan-4kolom">
-        <input type="text" id="namaPemesan" autocomplete="off" class="input-fleksibel" placeholder="*Nama">
-        <input type="text" id="alamatPemesan" autocomplete="off" class="input-fleksibel" placeholder="*Alamat">
+        <input type="text" id="namaPemesan" autocomplete="name" class="input-fleksibel" placeholder="*Nama">
+        <input type="text" id="alamatPemesan" autocomplete="street-address" class="input-fleksibel" placeholder="*Alamat">
         <button type="button" class="btn-aksi-mini btn-gps-mini" onclick="pilihMetodeGPS()">📍 Lokasi</button>
         <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()">📲 Order</button>
     </div>
