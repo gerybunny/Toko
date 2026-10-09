@@ -456,11 +456,20 @@
 <!-- FORM PEMESAN BAWAH -->
 <div class="bawah-ringkas" id="bagianFormPemesan">
     <div id="peringatanMin" class="peringatan"></div>
-    <div class="baris-pemesan-4kolom">
-        <input type="text" id="namaPemesan" autocomplete="name" class="input-fleksibel" placeholder="*Nama">
-        <input type="text" id="alamatPemesan" autocomplete="street-address" class="input-fleksibel" placeholder="*Alamat">
-        <button type="button" class="btn-aksi-mini btn-gps-mini" onclick="pilihMetodeGPS()">📍 Lokasi</button>
-        <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()">📲 Order</button>
+    <div class="baris-pemesan-4kolom" style="display: flex; align-items: center; gap: 4px; width: 100%; box-sizing: border-box;">
+        
+        <!-- INPUT NAMA (Pop-up Sandi Kuat Dimatikan) -->
+        <input type="text" id="namaPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Nama" style="flex: 1; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+        
+        <!-- INPUT ALAMAT (Pop-up Sandi Kuat Dimatikan) -->
+        <input type="text" id="alamatPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Alamat" style="flex: 1.2; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+        
+        <!-- TOMBOL LOKASI -->
+        <button type="button" class="btn-aksi-mini btn-gps-mini" onclick="pilihMetodeGPS()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; background: #007bff; color: white; border: none; border-radius: 6px; height: 35px; cursor: pointer;">📍 Lokasi</button>
+        
+        <!-- TOMBOL ORDER -->
+        <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; background: #25D366; color: white; border: none; border-radius: 6px; height: 35px; cursor: pointer;">📲 Order</button>
+        
     </div>
 </div>
 
