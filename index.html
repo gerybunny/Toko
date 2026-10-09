@@ -1175,7 +1175,7 @@ async function kirimPesananKeRiwayat(dataPesanan) {
 async function kirimKeWA() {
     const btnWA = document.getElementById('btnKirimWA');
 
-    // 1. Mencegah klik ganda jika tombol sedang proses
+    // Mencegah klik ganda jika tombol sedang diproses
     if (btnWA && btnWA.disabled) return;
 
     const namaPesan = document.getElementById('namaPemesan').value.trim();
@@ -1223,10 +1223,10 @@ async function kirimKeWA() {
         return;
     }
 
-    // 2. Kunci tombol dan ubah tulisan jadi loading
+    // Kunci tombol dan ubah tulisan jadi loading
     if (btnWA) {
         btnWA.disabled = true;
-        btnWA.innerText = "⏳";
+        btnWA.innerText = "⏳...";
     }
 
     const untung = totalBayar - totalModal;
@@ -1258,13 +1258,18 @@ async function kirimKeWA() {
     } catch (e) {
         tampilPesan("Gagal terhubung, coba lagi!");
     } finally {
-        // 3. Kembalikan tombol ke tulisan awal setelah selesai
         if (btnWA) {
             btnWA.disabled = false;
             btnWA.innerText = "📲 Order";
         }
     }
 }
+
+window.onload = function() {
+    perbaruiStatusToko();
+    setInterval(perbaruiStatusToko, 60000);
+    muatDariInternet();
+};
 </script>
 </body>
 </html>
