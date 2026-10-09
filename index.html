@@ -236,32 +236,37 @@
             padding: 8px 10px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
             z-index: 90;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
         }
         .baris-pemesan-4kolom {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            width: 100%;
-            box-sizing: border-box;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
+        
+        /* Memaksa Input Nama & Alamat Fleksibel Tanpa Mendesak Tombol */
         .input-fleksibel {
-            flex: 1 1 0%;
-            width: 0;
-            min-width: 0;
-            padding: 8px 6px;
+            flex: 1 1 0% !important;
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 8px 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 13px;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
         }
         .input-fleksibel:focus {
             outline: none;
             border-color: #128C7E;
             background: #fff;
         }
+
+        /* Mengunci Tombol Agar Pas & Tidak Mendorong Keluar Layar */
         .btn-aksi-mini {
-            padding: 8px 10px;
+            flex: 0 0 auto !important;
+            padding: 8px 6px;
             border: none;
             border-radius: 6px;
             font-size: 12px;
@@ -269,12 +274,17 @@
             cursor: pointer;
             white-space: nowrap;
             height: 35px;
-            flex: 0 0 auto;
-            box-sizing: border-box;
+            box-sizing: border-box !important;
         }
+
+        /* Warna Bawaan & Logika Disabled */
         .btn-gps-mini { background: #007bff; color: white; }
         .btn-wa-mini { background: #25D366; color: white; }
-        .btn-wa-mini:disabled, .btn-gps-mini:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-wa-mini:disabled, .btn-gps-mini:disabled { 
+            background: #ccc !important; 
+            color: #666 !important; 
+            cursor: not-allowed; 
+        }
 
         .peringatan {
             background: #fff3cd;
