@@ -80,10 +80,30 @@
             border: 1px solid #ccc;
             transition: all 0.3s ease;
         }
-        .tagline-toko {
-            font-size: 9px;
-            color: #666;
+        
+        /* === RUNNING TEXT (TEKS BERJALAN) === */
+        .running-text-container {
+            width: calc(100% - 20px);
+            margin: 4px 10px 2px 10px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+            overflow: hidden;
             white-space: nowrap;
+            box-sizing: border-box;
+            display: none; /* Muncul otomatis setelah data selesai dimuat */
+        }
+        .running-text-content {
+            display: inline-block;
+            padding: 5px 0;
+            font-size: 12px;
+            color: #856404;
+            font-weight: bold;
+            animation: berjalan 18s linear infinite;
+        }
+        @keyframes berjalan {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
 
         .ikon-keranjang {
@@ -246,7 +266,6 @@
             box-sizing: border-box !important;
         }
         
-        /* Memaksa Input Nama & Alamat Fleksibel Tanpa Mendesak Tombol */
         .input-fleksibel {
             flex: 1 1 0% !important;
             width: 0 !important;
@@ -263,7 +282,7 @@
             background: #fff;
         }
 
-        /* Mengunci Tombol Agar Pas & Tidak Mendorong Keluar Layar */
+        /* Efek Animasi Tombol Khusus Android 10/11 */
         .btn-aksi-mini {
             flex: 0 0 auto !important;
             padding: 8px 6px;
@@ -275,9 +294,15 @@
             white-space: nowrap;
             height: 35px;
             box-sizing: border-box !important;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2) !important;
+            transition: transform 0.1s ease, background-color 0.1s ease !important;
+            user-select: none !important;
+        }
+        .btn-aksi-mini:active {
+            transform: scale(0.92) !important;
+            opacity: 0.8 !important;
         }
 
-        /* Warna Bawaan & Logika Disabled */
         .btn-gps-mini { background: #007bff; color: white; }
         .btn-wa-mini { background: #25D366; color: white; }
         .btn-wa-mini:disabled, .btn-gps-mini:disabled { 
@@ -368,7 +393,7 @@
         .total-modal { font-size: 18px; font-weight: bold; color: #128C7E; text-align: right; margin-bottom: 10px; }
         .keranjang-kosong { text-align: center; color: #888; padding: 30px 10px; }
 
-        /* === ADMIN PANEL (TAMPILAN BERSIH HANYA KELOLA BARANG) === */
+        /* === ADMIN PANEL === */
         .admin-panel {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: #fff9e6; z-index: 9999; overflow-y: auto;
@@ -377,7 +402,7 @@
         .admin-panel.active { display: block; }
         .pin-form, .admin-form { display: none; gap: 10px; flex-direction: column; }
         .pin-form.active, .admin-form.active { display: flex; }
-        .admin-panel input { padding: 10px; border: 1px solid #ffc107; border-radius: 6px; font-size: 14px; }
+        .admin-panel input, .admin-panel textarea { padding: 10px; border: 1px solid #ffc107; border-radius: 6px; font-size: 14px; background: #fff; }
         .btn-simpan { background: #28a745; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-tolak { background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-batal { background: #6c757d; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
@@ -454,6 +479,11 @@
 
     <div id="infoMuat" class="info-muat">Memuat data...</div>
 
+    <!-- RUNNING TEXT (MUNCUL SETELAH DATA SELESAI DIMUAT) -->
+    <div id="runningTextWrapper" class="running-text-container">
+        <div id="runningTextContent" class="running-text-content">📢 Selamat datang di Toko Bp. Aman! Silakan pilih barang kebutuhan Anda.</div>
+    </div>
+
     <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
 </div>
 
@@ -468,22 +498,22 @@
     <div id="peringatanMin" class="peringatan"></div>
     <div class="baris-pemesan-4kolom" style="display: flex; align-items: center; gap: 4px; width: 100%; box-sizing: border-box;">
         
-        <!-- INPUT NAMA (Sandi Kuat Dimatikan) -->
+        <!-- INPUT NAMA -->
         <input type="text" id="namaPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Nama" style="flex: 1; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
         
-        <!-- INPUT ALAMAT (Sandi Kuat Dimatikan) -->
+        <!-- INPUT ALAMAT -->
         <input type="text" id="alamatPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Alamat" style="flex: 1.2; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
         
         <!-- TOMBOL LOKASI -->
         <button type="button" class="btn-aksi-mini btn-gps-mini" id="btnGPS" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 33px; cursor: pointer;">📍 Lokasi</button>
         
-        <!-- TOMBOL ORDER (Mengikuti Status Disabled/Enabled JavaScript) -->
+        <!-- TOMBOL ORDER -->
         <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 33px; cursor: pointer;">📲 Order</button>
         
     </div>
 </div>
 
-<!-- PANEL ADMIN (HANYA KELOLA BARANG & STOK) -->
+<!-- PANEL ADMIN -->
 <div class="admin-panel" id="adminPanel">
     <div class="pin-form active" id="pinForm">
         <h4 style="text-align:center; margin-bottom:10px;">Masuk Panel Admin</h4>
@@ -494,6 +524,14 @@
     
     <div class="admin-form" id="adminForm">
         <h4 id="judulForm">Tambah Barang Baru</h4>
+
+        <!-- PENGATURAN RUNNING TEXT DI ADMIN -->
+        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; border: 1px solid #ffeeba; margin-bottom: 10px;">
+            <label style="font-size: 12px; font-weight: bold; color: #856404; display: block; margin-bottom: 4px;">💬 Pengaturan Running Text (Teks Berjalan):</label>
+            <input type="text" id="inputRunningTextAdmin" placeholder="Tulis pengumuman di sini..." style="margin-bottom: 6px;">
+            <button class="btn-simpan" style="padding: 6px; font-size: 12px; width: 100%; background: #ffc107; color: #333;" onclick="simpanRunningTextBaru()">💾 Simpan Running Text</button>
+        </div>
+
         <div id="kotakBarangHabis" class="daftar-habis">
             <h4>BARANG HABIS (<span id="jumlahHabis">0</span>)</h4>
             <div id="isiDaftarHabis"></div>
@@ -518,7 +556,7 @@
         
         <h4>Kelola Daftar Barang</h4>
         <input type="search" class="search-box search-box-admin" id="kotakCariAdmin" placeholder="🔍 Cari produk..." onkeyup="cekEnterCariAdmin(event)" onsearch="cekSearchAdminClear()">
-        <div id="daftarAdmin" style="max-height: 300px; overflow-y: auto; margin-top: 8px;"></div>
+        <div id="daftarAdmin" style="max-height: 250px; overflow-y: auto; margin-top: 8px;"></div>
         
         <button class="btn-tolak" style="margin-top:15px; width:100%;" onclick="tutupAdmin()">Tutup Panel Admin</button>
     </div>
@@ -591,20 +629,39 @@ function tutupPesanPeringatan() {
     document.getElementById('kotakModalPesan').style.display = 'none';
 }
 
-// === CEK STATUS TOKO OTOMATIS ===
+// === CEK STATUS TOKO, HARI MINGGU & HARI LIBUR NASIONAL OTOMATIS ===
 function perbaruiStatusToko() {
     const elemen = document.getElementById('statusTokoOtomatis');
     if (!elemen) return;
 
     const sekarang = new Date();
+    const hari = sekarang.getDay(); // 0 = Minggu
+    const tglStr = sekarang.toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+    // Daftar Hari Libur Nasional Indonesia (Contoh Tetap & Bisa Ditambah)
+    const liburNasional = [
+        "2026-01-01", // Tahun Baru Masehi
+        "2026-03-31", // Idul Fitri (Contoh)
+        "2026-04-01", // Idul Fitri (Contoh)
+        "2026-05-17", // Hari Kenaikan Isa Almasih
+        "2026-06-01", // Hari Lahir Pancasila
+        "2026-08-17", // Hari Kemerdekaan RI
+        "2026-12-25"  // Hari Raya Natal
+    ];
+
     const jam = sekarang.getHours();
     const menit = sekarang.getMinutes();
     const totalMenit = jam * 60 + menit;
-
     const menitBuka = 8 * 60;
     const menitTutup = 16 * 60;
 
-    if (totalMenit >= menitBuka && totalMenit <= menitTutup) {
+    // Cek apakah Hari Minggu (0) atau masuk daftar libur nasional
+    if (hari === 0 || liburNasional.includes(tglStr)) {
+        elemen.textContent = "🔴 LIBUR / TUTUP HARI INI";
+        elemen.style.background = "#ffebee";
+        elemen.style.color = "#c62828";
+        elemen.style.borderColor = "#ffcdd2";
+    } else if (totalMenit >= menitBuka && totalMenit <= menitTutup) {
         elemen.textContent = "🟢 BUKA (08:00 - 16:00)";
         elemen.style.background = "#e8f5e9";
         elemen.style.color = "#2e7d32";
@@ -614,6 +671,37 @@ function perbaruiStatusToko() {
         elemen.style.background = "#ffebee";
         elemen.style.color = "#c62828";
         elemen.style.borderColor = "#ffcdd2";
+    }
+}
+
+// === PENGELOLAAN RUNNING TEXT (LOCALSTORAGE) ===
+function muatRunningText() {
+    const savedText = localStorage.getItem("tokoBpAmanRunningText");
+    const teksDefault = "📢 Selamat datang di Toko Bp. Aman! Toko buka setiap Senin s.d. Sabtu jam 08:00 - 16:00 WIB. Silakan pilih barang kebutuhan Anda! 😊";
+    const teksAktif = savedText !== null ? savedText : teksDefault;
+
+    const elContent = document.getElementById('runningTextContent');
+    const elInputAdmin = document.getElementById('inputRunningTextAdmin');
+
+    if (elContent) elContent.textContent = teksAktif;
+    if (elInputAdmin) elInputAdmin.value = teksAktif;
+}
+
+function simpanRunningTextBaru() {
+    const teksBaru = document.getElementById('inputRunningTextAdmin').value.trim();
+    if (!teksBaru) {
+        tampilPesan("Running text tidak boleh kosong!");
+        return;
+    }
+    localStorage.setItem("tokoBpAmanRunningText", teksBaru);
+    muatRunningText();
+    tampilPesan("✅ Running text berhasil diperbarui!");
+}
+
+function tampilkanRunningText() {
+    const kontainer = document.getElementById('runningTextWrapper');
+    if (kontainer) {
+        kontainer.style.display = 'block';
     }
 }
 
@@ -711,7 +799,7 @@ function hapusDariKeranjang(i) {
     perbaruiRingkasanKeranjang();
 }
 
-// === GPS (LOKASI DITAMBAHKAN DI BARIS BARU) ===
+// === GPS / LOKASI (OPTIMAL UNTUK ANDROID 10/11 & J7 CORE) ===
 function gabungAlamatDanLokasi(lat, lng) {
     const inputAlamat = document.getElementById('alamatPemesan');
     const alamatLama = inputAlamat.value.trim();
@@ -724,34 +812,50 @@ function gabungAlamatDanLokasi(lat, lng) {
     }
 }
 
-// === GPS YANG DISEMPURNAKAN UNTUK APK & BROWSER ===
 function pilihMetodeGPS() {
-    // Cek apakah fungsi jembatan dari APK Android tersedia
-    if (typeof Android !== 'undefined' && typeof Android.ambilLokasiDariGPS === 'function') {
-        try {
-            Android.ambilLokasiDariGPS();
-            return;
-        } catch (e) {
+    const btn = document.getElementById('btnGPS');
+    if (btn) {
+        btn.innerHTML = "⏳ Wait";
+        btn.disabled = true;
+    }
+
+    setTimeout(() => {
+        if (typeof Android !== 'undefined' && typeof Android.ambilLokasiDariGPS === 'function') {
+            try {
+                Android.ambilLokasiDariGPS();
+                setTimeout(() => {
+                    if (btn && btn.innerText === "⏳ Wait") {
+                        btn.innerHTML = "📍 Lokasi";
+                        btn.disabled = false;
+                    }
+                }, 4000);
+            } catch (e) {
+                ambilLokasiGPS();
+            }
+        } else {
             ambilLokasiGPS();
         }
-    } else {
-        // Jika dibuka di browser biasa
-        ambilLokasiGPS();
+    }, 50);
+}
+
+// Fungsi yang dipanggil otomatis dari APK Android
+function ambilLokasiDariAplikasi(lat, lng) {
+    const btn = document.getElementById('btnGPS');
+    gabungAlamatDanLokasi(lat, lng);
+    tampilPesan("📍 Lokasi berhasil diambil dari APK!");
+
+    if (btn) {
+        btn.innerHTML = "✅ Ok";
+        setTimeout(() => {
+            btn.innerHTML = "📍 Lokasi";
+            btn.disabled = false;
+        }, 2500);
     }
 }
 
-// Fungsi penerima dari APK Android
-function ambilLokasiDariAplikasi(lat, lng) {
-    gabungAlamatDanLokasi(lat, lng);
-    tampilPesan("📍 Lokasi berhasil diambil!");
-}
-
 async function ambilLokasiGPS() {
-    const btn = document.querySelector('.btn-gps-mini');
+    const btn = document.getElementById('btnGPS');
     if (!btn) return;
-    
-    btn.innerHTML = "⏳ Wait"; 
-    btn.disabled = true;
 
     if (!navigator.geolocation) {
         tampilPesan("Perangkat tidak mendukung GPS!");
@@ -796,7 +900,7 @@ async function ambilLokasiGPS() {
 
             let pesan = "Gagal mengambil lokasi.";
             if (err.code === 1) {
-                pesan = "⚠️ <b>Izin Lokasi Ditolak!</b><br>Masuk ke Pengaturan HP > Aplikasi > Toko Bp. Aman > Izin > Lokasi, lalu izinkan.";
+                pesan = "⚠️ <b>Izin Lokasi Ditolak!</b><br>Masuk ke Pengaturan HP > Aplikasi > Izin > Lokasi, lalu izinkan.";
             } else {
                 pesan = "⚠️ <b>GPS Gagal Lock!</b><br>Silakan salin titik lokasi langsung dari aplikasi Google Maps.";
                 window.open("https://maps.google.com/", "_blank");
@@ -854,6 +958,7 @@ async function muatDariInternet() {
         daftarBarang = cache; 
         renderDaftarBarang(kataKunciAktif); renderDaftarAdmin(); tampilkanBarangHabis();
         info.textContent = `Dari simpanan: ${daftarBarang.length} jenis barang`; info.className = "info-muat info cache";
+        tampilkanRunningText(); // Tampilkan running text langsung jika dari cache
     }
 
     let mulaiDari = 0;
@@ -917,6 +1022,8 @@ async function muatDariInternet() {
         renderDaftarBarang(); renderDaftarAdmin(); tampilkanBarangHabis();
     }
     
+    // Tampilkan running text setelah proses pengumpulan data SELESAI
+    tampilkanRunningText();
     sedangMemuat = false;
 }
 
@@ -1082,6 +1189,7 @@ function bukaPanelAdmin() {
     document.getElementById('adminForm').classList.add('active');
     renderDaftarAdmin(); 
     tampilkanBarangHabis();
+    muatRunningText();
 }
 async function cekPin() {
     const inputPin = document.getElementById('inputPin').value.trim();
@@ -1211,7 +1319,6 @@ async function simpanBarang() {
     await muatDariInternet();
 }
 
-// === PENGIRIMAN DATA PENJUALAN KE GOOGLE SHEETS (DIPERTAHANKAN UNTUK PANEL LAIN) ===
 async function kirimPesananKeRiwayat(dataPesanan) {
     try {
         await fetch(URL_PENYIMPANAN, {
@@ -1225,8 +1332,6 @@ async function kirimPesananKeRiwayat(dataPesanan) {
 
 async function kirimKeWA() {
     const btnWA = document.getElementById('btnKirimWA');
-
-    // Mencegah klik ganda jika tombol sedang diproses
     if (btnWA && btnWA.disabled) return;
 
     const namaPesan = document.getElementById('namaPemesan').value.trim();
@@ -1274,7 +1379,6 @@ async function kirimKeWA() {
         return;
     }
 
-    // Kunci tombol dan ubah tulisan jadi loading
     if (btnWA) {
         btnWA.disabled = true;
         btnWA.innerText = "⏳...";
@@ -1316,23 +1420,13 @@ async function kirimKeWA() {
     }
 }
 
-// Pasang penangkap klik khusus agar responsif di APK maupun Browser
-document.addEventListener("DOMContentLoaded", function() {
-    const btnGPS = document.getElementById('btnGPS');
-    if (btnGPS) {
-        btnGPS.addEventListener('click', function(e) {
-            e.preventDefault();
-            pilihMetodeGPS();
-        });
-    }
-});
-
 window.onload = function() {
     perbaruiStatusToko();
     setInterval(perbaruiStatusToko, 60000);
+    muatRunningText();
     muatDariInternet();
 
-    // Penangkap klik tombol GPS langsung via JavaScript
+    // Listener tombol GPS responsif untuk Android 10/11
     const tombolGPS = document.getElementById('btnGPS');
     if (tombolGPS) {
         tombolGPS.addEventListener('click', function(e) {
