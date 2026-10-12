@@ -751,50 +751,69 @@ async function ambilLokasiGPS() {
         return;
     }
 
-    try {
-        const posisi = await new Promise((berhasil, gagal) => {
-            navigator.geolocation.getCurrentPosition(berhasil, gagal, {
-                enableHighAccuracy: true, 
-                timeout: 15000, // Diatur 15 detik agar pas untuk HP kelas menengah/entry Samsung
-                maximumAge: 0
-            });
-        });
+    // Eksekusi dengan proteksi waktu ketat khusus HP jadul
+    let sudahRespon = false;
 
-        const lat = posisi.coords.latitude;
-        const lng = posisi.coords.longitude;
-        
-        // Pastikan fungsi ini ada di kode utama Mang Aman untuk menggabung/memasukkan lat-long
-        if (typeof gabungAlamatDanLokasi === 'function') {
-            gabungAlamatDanLokasi(lat, lng);
-        } else {
-            // Fallback otomatis jika fungsi gabung tidak terpanggil
-            const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-            const inputAlamat = document.getElementById('alamatPemesan');
-            if(inputAlamat) inputAlamat.value = linkMaps;
-        }
-
-        btn.innerHTML = "✅ Ok";
-        setTimeout(() => { 
+    const timerTimeout = setTimeout(() => {
+        if (!sudahRespon) {
+            sudahRespon = true;
+            // Fallback khusus J7 Core jika GPS bawaan browser menolak merespons
+            tampilPesan("⚠️ <b>GPS Lama/Lambat Merespons!</b><br>Membuka opsi alternatif peta...");
             btn.innerHTML = "📍 Lokasi"; 
-            btn.disabled = false; 
-        }, 2500);
-
-    } catch (err) {
-        let pesan = "Gagal mengambil lokasi.";
-        
-        // Penyesuaian kode error geolocation standar W3C
-        if (err.code === 1) {
-            pesan = "⚠️ <b>Akses Lokasi Ditolak!</b><br>Buka pengaturan Chrome HP Samsung Anda > Setelan Situs > Lokasi, lalu izinkan akses untuk situs ini.";
-        } else if (err.code === 2) {
-            pesan = "⚠️ <b>GPS Tidak Aktif / Sinyal Hilang!</b><br>Pastikan ikon Lokasi/GPS di panel atas HP sudah dinyalakan.";
-        } else if (err.code === 3) {
-            pesan = "⚠️ <b>Waktu Habis!</b><br>Sinyal GPS terlalu lama merespons. Coba pindah posisi sebentar lalu klik '📍 Lokasi' lagi.";
+            btn.disabled = false;
+            
+            // Opsi darurat: Buka Google Maps langsung untuk salin lokasi
+            window.open("https://maps.google.com/", "_blank");
         }
+    }, 8000); // Batas 8 detik
 
-        tampilPesan(pesan);
-        btn.innerHTML = "📍 Lokasi"; 
-        btn.disabled = false;
-    }
+    navigator.geolocation.getCurrentPosition(
+        function(posisi) {
+            if (sudahRespon) return;
+            sudahRespon = true;
+            clearTimeout(timerTimeout);
+
+            const lat = posisi.coords.latitude;
+            const lng = posisi.coords.longitude;
+            
+            if (typeof gabungAlamatDanLokasi === 'function') {
+                gabungAlamatDanLokasi(lat, lng);
+            } else {
+                const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                const inputAlamat = document.getElementById('alamatPemesan');
+                if(inputAlamat) inputAlamat.value = linkMaps;
+            }
+
+            btn.innerHTML = "✅ Ok";
+            setTimeout(() => { 
+                btn.innerHTML = "📍 Lokasi"; 
+                btn.disabled = false; 
+            }, 2500);
+        },
+        function(err) {
+            if (sudahRespon) return;
+            sudahRespon = true;
+            clearTimeout(timerTimeout);
+
+            let pesan = "Gagal mengambil lokasi.";
+            if (err.code === 1) {
+                pesan = "⚠️ <b>Izin Lokasi Ditolak!</b><br>Masuk ke Pengaturan HP > Aplikasi > Chrome > Izin > Lokasi, lalu ubah jadi Izinkan.";
+            } else {
+                // Untuk J7 Core yang sering gagal GPS internal, arahkan buka Google Maps web
+                pesan = "⚠️ <b>GPS J7 Core Gagal Lock!</b><br>Silakan salin titik lokasi langsung dari aplikasi Google Maps.";
+                window.open("https://maps.google.com/", "_blank");
+            }
+
+            tampilPesan(pesan);
+            btn.innerHTML = "📍 Lokasi"; 
+            btn.disabled = false;
+        },
+        {
+            enableHighAccuracy: false, // Diubah ke false agar HP jadul tidak memaksakan chip GPS berat
+            timeout: 7000,
+            maximumAge: 60000
+        }
+    );
 }
 
 // === CACHE & UTILS ===
