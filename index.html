@@ -732,9 +732,16 @@ function pilihMetodeGPS() {
     }
 }
 
+// Fungsi yang dipanggil otomatis dari APK Android
 function ambilLokasiDariAplikasi(lat, lng) {
-    gabungAlamatDanLokasi(lat, lng);
-    tampilPesan("Lokasi berhasil diambil!");
+    if (typeof gabungAlamatDanLokasi === 'function') {
+        gabungAlamatDanLokasi(lat, lng);
+    } else {
+        const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        const inputAlamat = document.getElementById('alamatPemesan');
+        if (inputAlamat) inputAlamat.value = linkMaps;
+    }
+    tampilPesan("📍 Lokasi berhasil di ambil!");
 }
 
 async function ambilLokasiGPS() {
