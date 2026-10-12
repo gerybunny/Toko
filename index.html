@@ -739,27 +739,61 @@ function ambilLokasiDariAplikasi(lat, lng) {
 
 async function ambilLokasiGPS() {
     const btn = document.querySelector('.btn-gps-mini');
-    btn.innerHTML = "⏳ Wait"; btn.disabled = true;
+    if (!btn) return;
+    
+    btn.innerHTML = "⏳ Wait"; 
+    btn.disabled = true;
+
     if (!navigator.geolocation) {
         tampilPesan("Perangkat tidak mendukung GPS!");
-        btn.innerHTML = "📍 Lokasi"; btn.disabled = false; return;
+        btn.innerHTML = "📍 Lokasi"; 
+        btn.disabled = false; 
+        return;
     }
+
     try {
         const posisi = await new Promise((berhasil, gagal) => {
-            navigator.geolocation.getCurrentPosition(berhasil, gagal, {enableHighAccuracy: true, timeout: 20000, maximumAge: 0});
+            navigator.geolocation.getCurrentPosition(berhasil, gagal, {
+                enableHighAccuracy: true, 
+                timeout: 15000, // Diatur 15 detik agar pas untuk HP kelas menengah/entry Samsung
+                maximumAge: 0
+            });
         });
+
         const lat = posisi.coords.latitude;
         const lng = posisi.coords.longitude;
-        gabungAlamatDanLokasi(lat, lng);
+        
+        // Pastikan fungsi ini ada di kode utama Mang Aman untuk menggabung/memasukkan lat-long
+        if (typeof gabungAlamatDanLokasi === 'function') {
+            gabungAlamatDanLokasi(lat, lng);
+        } else {
+            // Fallback otomatis jika fungsi gabung tidak terpanggil
+            const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            const inputAlamat = document.getElementById('alamatPemesan');
+            if(inputAlamat) inputAlamat.value = linkMaps;
+        }
+
         btn.innerHTML = "✅ Ok";
-        setTimeout(() => { btn.innerHTML = "📍 Lokasi"; btn.disabled = false; }, 2500);
+        setTimeout(() => { 
+            btn.innerHTML = "📍 Lokasi"; 
+            btn.disabled = false; 
+        }, 2500);
+
     } catch (err) {
-        let pesan = "Gagal ambil lokasi";
-        if (err.code === 1) pesan = "⚠️ <b>GPS belum aktif!</b><br>Nyalain dulu, biar kita tau lokasi kamu";
-        else if (err.code === 2) pesan = "Lokasi tidak ditemukan!";
-        else if (err.code === 3) pesan = "Terlalu lama menunggu!";
+        let pesan = "Gagal mengambil lokasi.";
+        
+        // Penyesuaian kode error geolocation standar W3C
+        if (err.code === 1) {
+            pesan = "⚠️ <b>Akses Lokasi Ditolak!</b><br>Buka pengaturan Chrome HP Samsung Anda > Setelan Situs > Lokasi, lalu izinkan akses untuk situs ini.";
+        } else if (err.code === 2) {
+            pesan = "⚠️ <b>GPS Tidak Aktif / Sinyal Hilang!</b><br>Pastikan ikon Lokasi/GPS di panel atas HP sudah dinyalakan.";
+        } else if (err.code === 3) {
+            pesan = "⚠️ <b>Waktu Habis!</b><br>Sinyal GPS terlalu lama merespons. Coba pindah posisi sebentar lalu klik '📍 Lokasi' lagi.";
+        }
+
         tampilPesan(pesan);
-        btn.innerHTML = "📍 Lokasi"; btn.disabled = false;
+        btn.innerHTML = "📍 Lokasi"; 
+        btn.disabled = false;
     }
 }
 
