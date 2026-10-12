@@ -475,7 +475,7 @@
         <input type="text" id="alamatPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Alamat" style="flex: 1.2; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
         
         <!-- TOMBOL LOKASI -->
-        <button type="button" class="btn-aksi-mini btn-gps-mini" onclick="pilihMetodeGPS()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 33px; cursor: pointer;">📍 Lokasi</button>
+        <button type="button" class="btn-aksi-mini btn-gps-mini" id="btnGPS" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 33px; cursor: pointer;">📍 Lokasi</button>
         
         <!-- TOMBOL ORDER (Mengikuti Status Disabled/Enabled JavaScript) -->
         <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 33px; cursor: pointer;">📲 Order</button>
@@ -726,17 +726,16 @@ function gabungAlamatDanLokasi(lat, lng) {
 
 // === GPS YANG DISEMPURNAKAN UNTUK APK & BROWSER ===
 function pilihMetodeGPS() {
-    // Cek apakah aplikasi dibuka melalui APK Android
+    // Cek apakah fungsi jembatan dari APK Android tersedia
     if (typeof Android !== 'undefined' && typeof Android.ambilLokasiDariGPS === 'function') {
         try {
             Android.ambilLokasiDariGPS();
             return;
         } catch (e) {
-            // Jika bridge gagal, fallback ke GPS web biasa
             ambilLokasiGPS();
         }
     } else {
-        // Jika dibuka lewat browser biasa (Chrome)
+        // Jika dibuka di browser biasa
         ambilLokasiGPS();
     }
 }
@@ -1317,10 +1316,30 @@ async function kirimKeWA() {
     }
 }
 
+// Pasang penangkap klik khusus agar responsif di APK maupun Browser
+document.addEventListener("DOMContentLoaded", function() {
+    const btnGPS = document.getElementById('btnGPS');
+    if (btnGPS) {
+        btnGPS.addEventListener('click', function(e) {
+            e.preventDefault();
+            pilihMetodeGPS();
+        });
+    }
+});
+
 window.onload = function() {
     perbaruiStatusToko();
     setInterval(perbaruiStatusToko, 60000);
     muatDariInternet();
+
+    // Penangkap klik tombol GPS langsung via JavaScript
+    const tombolGPS = document.getElementById('btnGPS');
+    if (tombolGPS) {
+        tombolGPS.addEventListener('click', function(e) {
+            e.preventDefault();
+            pilihMetodeGPS();
+        });
+    }
 };
 </script>
 </body>
