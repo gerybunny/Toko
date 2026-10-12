@@ -724,24 +724,27 @@ function gabungAlamatDanLokasi(lat, lng) {
     }
 }
 
+// === GPS YANG DISEMPURNAKAN UNTUK APK & BROWSER ===
 function pilihMetodeGPS() {
-    if (typeof Android !== 'undefined' && Android.ambilLokasiDariGPS) {
-        Android.ambilLokasiDariGPS();
+    // Cek apakah aplikasi dibuka melalui APK Android
+    if (typeof Android !== 'undefined' && typeof Android.ambilLokasiDariGPS === 'function') {
+        try {
+            Android.ambilLokasiDariGPS();
+            return;
+        } catch (e) {
+            // Jika bridge gagal, fallback ke GPS web biasa
+            ambilLokasiGPS();
+        }
     } else {
+        // Jika dibuka lewat browser biasa (Chrome)
         ambilLokasiGPS();
     }
 }
 
-// Fungsi yang dipanggil otomatis dari APK Android
+// Fungsi penerima dari APK Android
 function ambilLokasiDariAplikasi(lat, lng) {
-    if (typeof gabungAlamatDanLokasi === 'function') {
-        gabungAlamatDanLokasi(lat, lng);
-    } else {
-        const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-        const inputAlamat = document.getElementById('alamatPemesan');
-        if (inputAlamat) inputAlamat.value = linkMaps;
-    }
-    tampilPesan("📍 Lokasi berhasil di ambil!");
+    gabungAlamatDanLokasi(lat, lng);
+    tampilPesan("📍 Lokasi berhasil diambil!");
 }
 
 async function ambilLokasiGPS() {
@@ -758,21 +761,17 @@ async function ambilLokasiGPS() {
         return;
     }
 
-    // Eksekusi dengan proteksi waktu ketat khusus HP jadul
     let sudahRespon = false;
 
     const timerTimeout = setTimeout(() => {
         if (!sudahRespon) {
             sudahRespon = true;
-            // Fallback khusus J7 Core jika GPS bawaan browser menolak merespons
-            tampilPesan("⚠️ <b>GPS Lama/Lambat Merespons!</b><br>Membuka opsi alternatif peta...");
+            tampilPesan("⚠️ <b>GPS Lambat Merespons!</b><br>Membuka opsi alternatif peta...");
             btn.innerHTML = "📍 Lokasi"; 
             btn.disabled = false;
-            
-            // Opsi darurat: Buka Google Maps langsung untuk salin lokasi
             window.open("https://maps.google.com/", "_blank");
         }
-    }, 8000); // Batas 8 detik
+    }, 8000);
 
     navigator.geolocation.getCurrentPosition(
         function(posisi) {
@@ -783,13 +782,7 @@ async function ambilLokasiGPS() {
             const lat = posisi.coords.latitude;
             const lng = posisi.coords.longitude;
             
-            if (typeof gabungAlamatDanLokasi === 'function') {
-                gabungAlamatDanLokasi(lat, lng);
-            } else {
-                const linkMaps = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-                const inputAlamat = document.getElementById('alamatPemesan');
-                if(inputAlamat) inputAlamat.value = linkMaps;
-            }
+            gabungAlamatDanLokasi(lat, lng);
 
             btn.innerHTML = "✅ Ok";
             setTimeout(() => { 
@@ -804,10 +797,9 @@ async function ambilLokasiGPS() {
 
             let pesan = "Gagal mengambil lokasi.";
             if (err.code === 1) {
-                pesan = "⚠️ <b>Izin Lokasi Ditolak!</b><br>Masuk ke Pengaturan HP > Aplikasi > Chrome > Izin > Lokasi, lalu ubah jadi Izinkan.";
+                pesan = "⚠️ <b>Izin Lokasi Ditolak!</b><br>Masuk ke Pengaturan HP > Aplikasi > Toko Bp. Aman > Izin > Lokasi, lalu izinkan.";
             } else {
-                // Untuk J7 Core yang sering gagal GPS internal, arahkan buka Google Maps web
-                pesan = "⚠️ <b>GPS J7 Core Gagal Lock!</b><br>Silakan salin titik lokasi langsung dari aplikasi Google Maps.";
+                pesan = "⚠️ <b>GPS Gagal Lock!</b><br>Silakan salin titik lokasi langsung dari aplikasi Google Maps.";
                 window.open("https://maps.google.com/", "_blank");
             }
 
@@ -816,7 +808,7 @@ async function ambilLokasiGPS() {
             btn.disabled = false;
         },
         {
-            enableHighAccuracy: false, // Diubah ke false agar HP jadul tidak memaksakan chip GPS berat
+            enableHighAccuracy: false,
             timeout: 7000,
             maximumAge: 60000
         }
