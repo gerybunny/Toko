@@ -517,11 +517,11 @@
     </div>
     
     <div class="admin-form" id="adminForm">
-        <!-- KOTAK PENGATURAN RUNNING TEXT DI ADMIN -->
+        <!-- KOTAK PENGATURAN RUNNING TEXT ONLINE DI ADMIN -->
         <div style="background: #fff3cd; padding: 10px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 12px; font-weight: bold; color: #856404;">📢 Pengaturan Running Text (Teks Berjalan):</label>
+            <label style="font-size: 12px; font-weight: bold; color: #856404;">📢 Pengaturan Running Text Online:</label>
             <input type="text" id="inputRunningTextAdmin" placeholder="Ketik kalimat running text..." style="font-size: 13px; border-color: #ffc107;">
-            <button type="button" class="btn-simpan" style="background: #ffc107; color: #333; font-size: 12px; padding: 8px;" onclick="simpanRunningTextBaru()">💾 SIMPAN RUNNING TEXT</button>
+            <button type="button" class="btn-simpan" style="background: #ffc107; color: #333; font-size: 12px; padding: 8px;" onclick="simpanRunningTextBaru()">💾 SIMPAN KE SERVER</button>
         </div>
 
         <h4 id="judulForm">Tambah Barang Baru</h4>
@@ -577,6 +577,7 @@ let sedangUbahIndex = null;
 let indeksHapusBarang = null;
 let sedangMemuat = false;
 let kataKunciAktif = '';
+let runningTextGlobal = "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabtu jam 08:00 - 16:00 WIB. Selamat berbelanja!";
 
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
@@ -623,58 +624,42 @@ function tutupPesanPeringatan() {
     document.getElementById('kotakModalPesan').style.display = 'none';
 }
 
-// === CEK STATUS TOKO, HARI MINGGU & LIBUR NASIONAL OTOMATIS (BISA UNTUK TAHUN 2026, 2027, DST) ===
+// === CEK STATUS TOKO & HARI LIBUR NASIONAL OTOMATIS ===
 async function perbaruiStatusToko() {
     const elemen = document.getElementById('statusTokoOtomatis');
     if (!elemen) return;
 
     const sekarang = new Date();
-    const hari = sekarang.getDay(); // 0 = Hari Minggu
+    const hari = sekarang.getDay(); // 0 = Minggu
     const bulan = String(sekarang.getMonth() + 1).padStart(2, '0');
     const tanggal = String(sekarang.getDate()).padStart(2, '0');
     
-    const blnTglSekarang = `${bulan}-${tanggal}`; // Format: MM-DD
-    const tglLengkapSekarang = sekarang.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const blnTglSekarang = `${bulan}-${tanggal}`;
+    const tglLengkapSekarang = sekarang.toISOString().split('T')[0];
 
-    // 1. DAFTAR LIBUR TANGGAL TETAP (Otomatis Berlaku untuk Tahun Berapapun)
-    const liburTetap = [
-        "01-01", // Tahun Baru Masehi
-        "05-01", // Hari Buruh
-        "06-01", // Hari Lahir Pancasila
-        "08-17", // Hari Kemerdekaan RI
-        "12-25"  // Hari Raya Natal
-    ];
-
+    const liburTetap = ["01-01", "05-01", "06-01", "08-17", "12-25"];
     let apakahHariLibur = false;
 
-    // Cek apakah hari ini masuk libur nasional tanggal tetap
     if (liburTetap.includes(blnTglSekarang)) {
         apakahHariLibur = true;
     }
 
-    // 2. AMBIL DATA LIBUR DARI API KALENDER INDONESIA (Memeriksa Idul Fitri, Nyepi, dll secara otomatis)
     try {
         const tahun = sekarang.getFullYear();
         const res = await fetch(`https://dayoffapi.vercel.app/api?year=${tahun}`);
         if (res.ok) {
             const dataLibur = await res.json();
-            // Cek apakah tanggal hari ini terdaftar sebagai tanggal merah
             const ketemuLibur = dataLibur.find(item => item.is_holiday && item.holiday_date === tglLengkapSekarang);
-            if (ketemuLibur) {
-                apakahHariLibur = true;
-            }
+            if (ketemuLibur) apakahHariLibur = true;
         }
-    } catch (e) {
-        // Jika internet lambat/API gagal, sistem tetap aman mengandalkan daftar liburTetap & Hari Minggu
-    }
+    } catch (e) {}
 
     const jam = sekarang.getHours();
     const menit = sekarang.getMinutes();
     const totalMenit = jam * 60 + menit;
-    const menitBuka = 8 * 60;   // Jam 08:00
-    const menitTutup = 16 * 60;  // Jam 16:00
+    const menitBuka = 8 * 60;
+    const menitTutup = 16 * 60;
 
-    // LOGIKA PENENTUAN STATUS
     if (hari === 0 || apakahHariLibur) {
         elemen.textContent = "🔴 LIBUR / TUTUP HARI INI";
         elemen.style.background = "#ffebee";
@@ -693,37 +678,58 @@ async function perbaruiStatusToko() {
     }
 }
 
-// === RUNNING TEXT SISTEM ===
-function ambilTeksRunning() {
-    const savedText = localStorage.getItem("tokoBpAmanRunningText");
-    return savedText !== null ? savedText : "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabtu jam 08:00 - 16:00 WIB. Selamat berbelanja!";
+// === RUNNING TEXT ONLINE DARI GOOGLE SHEET ===
+async function ambilRunningTextOnline() {
+    try {
+        const res = await fetch(`${URL_PENYIMPANAN}?aksi=ambilRunningText`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.teks && data.teks.trim() !== "") {
+                runningTextGlobal = data.teks;
+            }
+        }
+    } catch (e) {
+        const cacheTeks = localStorage.getItem("tokoBpAmanRunningTextCache");
+        if (cacheTeks) runningTextGlobal = cacheTeks;
+    }
 }
 
-function simpanRunningTextBaru() {
+async function simpanRunningTextBaru() {
     const input = document.getElementById('inputRunningTextAdmin');
     if (!input) return;
     const teksBaru = input.value.trim();
+    
     if (!teksBaru) {
-        tampilPesan("Teks tidak boleh kosong!");
+        tampilPesan("Running text tidak boleh kosong!");
         return;
     }
-    localStorage.setItem("tokoBpAmanRunningText", teksBaru);
-    
-    // Jika posisi teks sedang running, perbarui langsung
-    const wrapper = document.getElementById('infoMuatWrapper');
-    if (wrapper && wrapper.classList.contains('running-mode')) {
+
+    tampilPesan("Menyimpan running text ke server...");
+
+    try {
+        await fetch(URL_PENYIMPANAN, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ aksi: "simpanRunningText", teks: teksBaru })
+        });
+
+        runningTextGlobal = teksBaru;
+        localStorage.setItem("tokoBpAmanRunningTextCache", teksBaru);
+        
         aktifkanRunningText();
+        tampilPesan("✅ Running text berhasil diperbarui untuk SEMUA HP!");
+    } catch (e) {
+        tampilPesan("⚠️ Gagal menyimpan ke server, periksa koneksi internet.");
     }
-    tampilPesan("✅ Running text berhasil diperbarui!");
 }
 
 function aktifkanRunningText() {
     const wrapper = document.getElementById('infoMuatWrapper');
     if (!wrapper) return;
-    const teks = ambilTeksRunning();
     
     wrapper.classList.add('running-mode');
-    wrapper.innerHTML = `<span class="running-text-span">${teks}</span>`;
+    wrapper.innerHTML = `<span class="running-text-span">${runningTextGlobal}</span>`;
 }
 
 // === KERANJANG MODAL ===
@@ -972,8 +978,10 @@ async function fetchDenganCobaUlang(url, maks=3) {
 async function muatDariInternet() {
     if (sedangMemuat) return; sedangMemuat = true;
     const infoSpan = document.getElementById('infoMuat');
-    const wrapper = document.getElementById('infoMuatWrapper');
     
+    // Ambil running text online terlebih dahulu
+    await ambilRunningTextOnline();
+
     const cache = ambilCacheBarang();
     if (cache) {
         daftarBarang = cache; 
@@ -1033,7 +1041,7 @@ async function muatDariInternet() {
         simpanCacheBarang(daftarBarang);
     }
 
-    // SETELAH DATA SELESAI DIMUAT, GANTI TEKS LOADING DENGAN RUNNING TEXT
+    // SETELAH DATA SELESAI DIMUAT, GANTI TEKS LOADING DENGAN RUNNING TEXT ONLINE
     aktifkanRunningText();
     sedangMemuat = false;
 }
@@ -1195,15 +1203,16 @@ function tutupAdmin() {
     resetFormAdmin(); 
     sedangUbahIndex = null; 
 }
-function bukaPanelAdmin() {
+async function bukaPanelAdmin() {
     document.getElementById('pinForm').classList.remove('active');
     document.getElementById('adminForm').classList.add('active');
     renderDaftarAdmin(); 
     tampilkanBarangHabis();
     
-    // Isikan teks running aktif ke input form admin
+    // Ambil running text terbaru dari server saat buka panel admin
+    await ambilRunningTextOnline();
     const input = document.getElementById('inputRunningTextAdmin');
-    if (input) input.value = ambilTeksRunning();
+    if (input) input.value = runningTextGlobal;
 }
 async function cekPin() {
     const inputPin = document.getElementById('inputPin').value.trim();
