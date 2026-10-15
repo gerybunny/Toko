@@ -253,8 +253,10 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: #f2f2f2;
+            background: rgba(242, 242, 242, 0.85); /* Abu-abu #f2f2f2 dengan transparan 85% */
+            backdrop-filter: blur(8px); /* Efek kaca buram (glass effect) */
             padding: 8px 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08); /* Bayangan tipis agar tidak terlalu datar */
             z-index: 90;
             box-sizing: border-box !important;
         }
