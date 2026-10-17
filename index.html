@@ -377,22 +377,24 @@
             -webkit-overflow-scrolling: touch; 
         }
         
-        /* === GAYA ITEM KERANJANG DENGAN PREVIEW FOTO === */
+        /* === PERBAIKAN FOTO PRESISI SAMPAI TOMBOL +/- === */
         .item-keranjang { 
             display: flex; 
-            align-items: center; 
+            align-items: flex-start; /* Rata atas biar presisi sejajar dengan nama barang */
             gap: 12px; 
             padding: 10px 0; 
             border-bottom: 1px dashed #eee; 
         }
+
         .foto-item-keranjang {
-            width: 55px;
-            height: 55px;
-            object-fit: cover;
+            width: 62px;          /* Lebar presisi */
+            height: 62px;         /* Tinggi pas dari Nama Barang sampai Tombol +/- */
+            object-fit: cover;    /* Foto tetap bagus, tidak gepeng */
             border-radius: 8px;
             background: #f0f0f0;
             flex-shrink: 0;
             border: 1px solid #eee;
+            margin-top: 2px;      /* Penyesuaian kecil agar sejajar sempurna dengan teks nama */
         }
         .info-detail-item {
             flex: 1;
