@@ -377,23 +377,44 @@
             -webkit-overflow-scrolling: touch; 
         }
         
-        .item-keranjang { padding: 10px 0; border-bottom: 1px dashed #eee; }
-        .nama-item { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        .harga-item { font-size: 12px; color: #666; margin-bottom: 6px; }
+        /* === GAYA ITEM KERANJANG DENGAN PREVIEW FOTO === */
+        .item-keranjang { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 10px 0; 
+            border-bottom: 1px dashed #eee; 
+        }
+        .foto-item-keranjang {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f0f0f0;
+            flex-shrink: 0;
+            border: 1px solid #eee;
+        }
+        .info-detail-item {
+            flex: 1;
+            min-width: 0;
+        }
+        .nama-item { font-weight: bold; font-size: 13px; line-height: 1.3; margin-bottom: 2px; }
+        .harga-item { font-size: 11px; color: #666; margin-bottom: 6px; }
         .kontrol-item { display: flex; justify-content: space-between; align-items: center; }
         .grup-tombol { display: flex; gap: 6px; align-items: center; }
         .grup-tombol button {
-            width: 28px; height: 28px;
+            width: 26px; height: 26px;
             border: none; border-radius: 50%;
             background: #25D366; color: white;
             font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
         .btn-hapus {
             background: #dc3545; color: white;
-            border: none; padding: 5px 10px;
-            border-radius: 4px; font-size: 12px; cursor: pointer;
+            border: none; padding: 4px 8px;
+            border-radius: 4px; font-size: 11px; cursor: pointer;
         }
-        .subtotal-item { text-align: right; font-size: 13px; color: #555; margin-top: 4px; }
+        .subtotal-item { text-align: right; font-size: 12px; font-weight: bold; color: #128C7E; margin-top: 4px; }
         .kaki-modal { padding: 12px 16px; border-top: 1px solid #eee; background: #fff; }
         .total-modal { font-size: 18px; font-weight: bold; color: #128C7E; text-align: right; margin-bottom: 10px; }
         .keranjang-kosong { text-align: center; color: #888; padding: 30px 10px; }
@@ -568,7 +589,7 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbzCHkAsBackskPb
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
 const JUMLAH_PER_AMBIL = 10;
-const JUMLAH_PER_HALAMAN = 12;
+const JUMLAH_PER_HALAMAN = 8;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
 const KUALITAS_FOTO = 0.8;
@@ -763,6 +784,7 @@ function lanjutKeFormPemesan() {
     }, 320);
 }
 
+/* === MODIFIKASI RENDER KERANJANG DENGAN FOTO PRODUK === */
 function renderKeranjangModal() {
     const wadah = document.getElementById('isiKeranjangModal');
     const totalModal = document.getElementById('totalModalNilai');
@@ -777,18 +799,25 @@ function renderKeranjangModal() {
                 const hrg = ambilHarga(brg, j);
                 const subtotal = hrg * j;
                 totalHarga += subtotal;
+                
+                // Ambil foto barang, jika tidak ada pakai placeholder
+                const fotoBrg = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/100/eeeeee/888888?text=Foto';
+
                 html += `<div class="item-keranjang">
-                    <div class="nama-item">${brg.nama}</div>
-                    <div class="harga-item">Rp ${hrg.toLocaleString('id-ID')} / pcs</div>
-                    <div class="kontrol-item">
-                        <div class="grup-tombol">
-                            <button onclick="kurang(${i}); renderKeranjangModal();">−</button>
-                            <b>${j}</b>
-                            <button onclick="tambah(${i}); renderKeranjangModal();">+</button>
+                    <img src="${fotoBrg}" class="foto-item-keranjang" alt="${brg.nama}">
+                    <div class="info-detail-item">
+                        <div class="nama-item">${brg.nama}</div>
+                        <div class="harga-item">Rp ${hrg.toLocaleString('id-ID')} / pcs</div>
+                        <div class="kontrol-item">
+                            <div class="grup-tombol">
+                                <button onclick="kurang(${i}); renderKeranjangModal();">−</button>
+                                <b>${j}</b>
+                                <button onclick="tambah(${i}); renderKeranjangModal();">+</button>
+                            </div>
+                            <button class="btn-hapus" onclick="hapusDariKeranjang(${i}); renderKeranjangModal();">Hapus</button>
                         </div>
-                        <button class="btn-hapus" onclick="hapusDariKeranjang(${i}); renderKeranjangModal();">Hapus</button>
+                        <div class="subtotal-item">Subtotal: Rp ${subtotal.toLocaleString('id-ID')}</div>
                     </div>
-                    <div class="subtotal-item">Subtotal: Rp ${subtotal.toLocaleString('id-ID')}</div>
                 </div>`;
             }
         }
