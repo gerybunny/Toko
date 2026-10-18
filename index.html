@@ -92,7 +92,7 @@
             white-space: nowrap;
             border-radius: 6px;
             padding: 4px 6px;
-            background: rgba(255, 255, 255, 0.05); /* Putih semi-transparan 70% */
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(8px);
             color: #555;
             border: 1px solid rgba(0, 0, 0, 0.05);
@@ -101,7 +101,7 @@
         
         /* Kelas ketika berubah jadi Running Text */
         .info-muat-wrapper.running-mode {
-            background: rgba(255, 243, 205, 0.20); /* Kuning lembut semi-transparan */
+            background: rgba(255, 243, 205, 0.20);
             border: 1px solid rgba(255, 238, 186, 0.8);
             color: #856404;
             text-align: left;
@@ -257,8 +257,8 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: rgba(242, 242, 242, 0.25); /* Abu-abu #f2f2f2 dengan transparan 85% */
-            backdrop-filter: blur(8px); /* Efek kaca buram (glass effect) */
+            background: rgba(242, 242, 242, 0.25);
+            backdrop-filter: blur(8px);
             padding: 8px 10px;
             z-index: 90;
             box-sizing: border-box !important;
@@ -380,21 +380,21 @@
         /* === PERBAIKAN FOTO PRESISI SAMPAI TOMBOL +/- === */
         .item-keranjang { 
             display: flex; 
-            align-items: flex-start; /* Rata atas biar presisi sejajar dengan nama barang */
+            align-items: flex-start;
             gap: 12px; 
             padding: 10px 0; 
             border-bottom: 1px dashed #eee; 
         }
 
         .foto-item-keranjang {
-            width: 62px;          /* Lebar presisi */
-            height: 62px;         /* Tinggi pas dari Nama Barang sampai Tombol +/- */
-            object-fit: cover;    /* Foto tetap bagus, tidak gepeng */
+            width: 62px;
+            height: 62px;
+            object-fit: cover;
             border-radius: 8px;
             background: #f0f0f0;
             flex-shrink: 0;
             border: 1px solid #eee;
-            margin-top: 2px;      /* Penyesuaian kecil agar sejajar sempurna dengan teks nama */
+            margin-top: 2px;
         }
         
         .info-detail-item {
@@ -483,7 +483,7 @@
     <div id="isiKeranjangModal" class="isi-modal"></div>
     <div class="kaki-modal">
         <div class="total-modal">Total: Rp <span id="totalModalNilai">0</span></div>
-        <button class="btn-wa-mini" style="width:100%; height:42px; font-size:14px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="lanjutKeFormPemesan()">
+        <button class="btn-wa-mini" id="btnProsesModal" style="width:100%; height:42px; font-size:14px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="lanjutKeFormPemesan()">
             ✍️ Isi Nama & Alamat Pengiriman
         </button>
     </div>
@@ -610,6 +610,7 @@ let runningTextGlobal = "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabt
 
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
+let tokoSedangTutup = false; // Penanda status toko global
 
 // === PENCARIAN MANUAL ===
 function cekEnterCari(event) {
@@ -694,17 +695,23 @@ async function perbaruiStatusToko() {
         elemen.style.background = "#ffebee";
         elemen.style.color = "#c62828";
         elemen.style.borderColor = "#ffcdd2";
+        tokoSedangTutup = true;
     } else if (totalMenit >= menitBuka && totalMenit <= menitTutup) {
         elemen.textContent = "🟢 BUKA (08:00 - 16:00)";
         elemen.style.background = "#e8f5e9";
         elemen.style.color = "#2e7d32";
         elemen.style.borderColor = "#c8e6c9";
+        tokoSedangTutup = false;
     } else {
         elemen.textContent = "🔴 TUTUP (Buka Jam 08:00)";
         elemen.style.background = "#ffebee";
         elemen.style.color = "#c62828";
         elemen.style.borderColor = "#ffcdd2";
+        tokoSedangTutup = true;
     }
+
+    // Perbarui status tombol order secara otomatis berdasarkan jam buka/tutup
+    cekMinPesan();
 }
 
 // === RUNNING TEXT ONLINE DARI GOOGLE SHEET ===
@@ -780,6 +787,10 @@ function tutupKeranjang() {
 }
 
 function lanjutKeFormPemesan() {
+    if (tokoSedangTutup) {
+        tampilPesan("🔒 <b>Toko Sedang Tutup / Libur</b><br>Pemesanan belum dapat dilakukan saat ini.");
+        return;
+    }
     tutupKeranjang();
     setTimeout(() => {
         const inputNama = document.getElementById('namaPemesan');
@@ -803,7 +814,6 @@ function renderKeranjangModal() {
                 const subtotal = hrg * j;
                 totalHarga += subtotal;
                 
-                // Ambil foto barang, jika tidak ada pakai placeholder
                 const fotoBrg = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/100/eeeeee/888888?text=Foto';
 
                 html += `<div class="item-keranjang">
@@ -1016,7 +1026,6 @@ async function muatDariInternet() {
     if (sedangMemuat) return; sedangMemuat = true;
     const infoSpan = document.getElementById('infoMuat');
     
-    // Ambil running text online terlebih dahulu
     await ambilRunningTextOnline();
 
     const cache = ambilCacheBarang();
@@ -1078,7 +1087,6 @@ async function muatDariInternet() {
         simpanCacheBarang(daftarBarang);
     }
 
-    // SETELAH DATA SELESAI DIMUAT, GANTI TEKS LOADING DENGAN RUNNING TEXT ONLINE
     aktifkanRunningText();
     sedangMemuat = false;
 }
@@ -1124,7 +1132,6 @@ function renderDaftarBarang(kata='') {
 
     const barangDitampilkan = kataKunciAktif ? filter : filter.slice(0, batasTampilSekarang);
 
-    // Menggunakan teknik gabung string sekaligus (Array.map) agar tidak membebani memori HP
     const htmlProduk = barangDitampilkan.map(brg => {
         const idx = daftarBarang.indexOf(brg);
         const jml = keranjang[idx] || 0;
@@ -1163,14 +1170,12 @@ function renderDaftarBarang(kata='') {
 window.onscroll = function() {
     if (kataKunciAktif) return;
     
-    // Pemicu diperluas jadi 600px sebelum dasar halaman (mencuri start unduh data)
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) {
         if (!sedangTambahBarangScroll && batasTampilSekarang < daftarBarang.length) {
             sedangTambahBarangScroll = true;
             batasTampilSekarang += JUMLAH_PER_HALAMAN;
             renderDaftarBarang(kataKunciAktif);
             
-            // Jeda dipersingkat jadi 50ms agar animasi buka barang instan
             setTimeout(() => { sedangTambahBarangScroll = false; }, 50);
         }
     }
@@ -1215,17 +1220,45 @@ function cariBarang() {
     renderDaftarBarang(document.getElementById('kotakCari').value.trim());
 }
 
+// === PENYESUAIAN PENTING: CEK TOKO TUTUP/BUKA DAN OTOMATIS DISABLE TOMBOL ORDER ===
 function cekMinPesan() {
     const total = hitungTotal();
     const peringatan = document.getElementById('peringatanMin');
     const btn = document.getElementById('btnKirimWA');
-    if (total>0 && total<MINIMAL_PESANAN) {
+    const btnModal = document.getElementById('btnProsesModal');
+
+    // KONDISI 1: JIKA TOKO SEDANG TUTUP / LIBUR
+    if (tokoSedangTutup) {
+        peringatan.style.display = 'block';
+        peringatan.textContent = `🔒 Toko sedang TUTUP / LIBUR. Pemesanan tidak dapat dilakukan saat ini.`;
+        
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '🔒 Tutup';
+        }
+        if (btnModal) {
+            btnModal.disabled = true;
+            btnModal.innerHTML = '🔒 Toko Sedang Tutup';
+            btnModal.style.background = '#ccc';
+        }
+        return;
+    }
+
+    // KONDISI 2: JIKA TOKO BUKA (Normal Check Nominal)
+    if (btn) btn.innerHTML = '📲 Order';
+    if (btnModal) {
+        btnModal.disabled = false;
+        btnModal.innerHTML = '✍️ Isi Nama & Alamat Pengiriman';
+        btnModal.style.background = '#25D366';
+    }
+
+    if (total > 0 && total < MINIMAL_PESANAN) {
         peringatan.style.display = 'block';
         peringatan.textContent = `⚠️ Pesanan minimal Rp ${MINIMAL_PESANAN.toLocaleString('id-ID')}. Tambah barang lagi ya!`;
-        btn.disabled = true;
+        if (btn) btn.disabled = true;
     } else {
         peringatan.style.display = 'none';
-        btn.disabled = total === 0;
+        if (btn) btn.disabled = total === 0;
     }
 }
 
@@ -1254,7 +1287,6 @@ async function bukaPanelAdmin() {
     renderDaftarAdmin(); 
     tampilkanBarangHabis();
     
-    // Ambil running text terbaru dari server saat buka panel admin
     await ambilRunningTextOnline();
     const input = document.getElementById('inputRunningTextAdmin');
     if (input) input.value = runningTextGlobal;
@@ -1399,6 +1431,12 @@ async function kirimPesananKeRiwayat(dataPesanan) {
 }
 
 async function kirimKeWA() {
+    // CEGATAN EKSTRA JIKA TOKO TUTUP
+    if (tokoSedangTutup) {
+        tampilPesan("🔒 <b>Toko Sedang Tutup / Libur</b><br>Pemesanan belum dapat dilakukan saat ini.");
+        return;
+    }
+
     const btnWA = document.getElementById('btnKirimWA');
     if (btnWA && btnWA.disabled) return;
 
