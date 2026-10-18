@@ -591,8 +591,8 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbzCHkAsBackskPb
 
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
-const JUMLAH_PER_AMBIL = 20;
-const JUMLAH_PER_HALAMAN = 16;
+const JUMLAH_PER_AMBIL = 10;
+const JUMLAH_PER_HALAMAN = 10;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
 const KUALITAS_FOTO = 0.8;
@@ -1099,7 +1099,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG ===
+// === RENDER DAFTAR BARANG (DENGAN OPTIMASI PEMBERATAN GAMBAR & RENDER KELAS ATAS) ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -1124,28 +1124,31 @@ function renderDaftarBarang(kata='') {
 
     const barangDitampilkan = kataKunciAktif ? filter : filter.slice(0, batasTampilSekarang);
 
-    barangDitampilkan.forEach(brg => {
+    // Menggunakan teknik gabung string sekaligus (Array.map) agar tidak membebani memori HP
+    const htmlProduk = barangDitampilkan.map(brg => {
         const idx = daftarBarang.indexOf(brg);
-        const jml = keranjang[idx]||0;
+        const jml = keranjang[idx] || 0;
         const hrg = ambilHarga(brg, jml);
-        const foto = brg.foto && brg.foto.length>50 ? brg.foto : 'https://via.placeholder.com/200x150/eeeeee/888888?text=Foto+Barang';
+        const foto = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/200x150/eeeeee/888888?text=Foto+Barang';
         const habis = brg.stok <= 0;
         const stokTeks = habis ? `<div class="stok-info stok-habis">HABIS</div>` : `<div class="stok-info stok-aman">Stok: ${brg.stok}</div>`;
-        const grosirTeks = brg.hargaGrosir>0&&brg.minGrosir>0 ? `<div class="produk-harga-grosir">Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} ≥${brg.minGrosir}pcs</div>` : '';
-        const dusTeks = brg.hargaDus>0&&brg.isiPerDus>0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
+        const grosirTeks = brg.hargaGrosir > 0 && brg.minGrosir > 0 ? `<div class="produk-harga-grosir">Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} ≥${brg.minGrosir}pcs</div>` : '';
+        const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
         
-        wadah.innerHTML += `<div class="produk ${habis?'habis':''}" id="kartuProduk_${idx}">
-            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy">
+        return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy" decoding="async">
             <div class="produk-nama">${brg.nama}</div>
             <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
             ${grosirTeks}${dusTeks}${stokTeks}
             <div class="jumlah">
-                <button onclick="kurang(${idx})" ${habis?'disabled':''}>−</button>
-                <input type="number" id="inputJml_${idx}" value="${jml}" min="0" max="${brg.stok||999}" onchange="aturJumlah(${idx}, this.value)" ${habis?'disabled':''}>
-                <button onclick="tambah(${idx})" ${habis?'disabled':''}>+</button>
+                <button onclick="kurang(${idx})" ${habis ? 'disabled' : ''}>−</button>
+                <input type="number" id="inputJml_${idx}" value="${jml}" min="0" max="${brg.stok || 999}" onchange="aturJumlah(${idx}, this.value)" ${habis ? 'disabled' : ''}>
+                <button onclick="tambah(${idx})" ${habis ? 'disabled' : ''}>+</button>
             </div>
         </div>`;
-    });
+    }).join('');
+
+    wadah.innerHTML = htmlProduk;
 
     if (!kataKunciAktif && batasTampilSekarang < filter.length) {
         indikator.style.display = 'block';
@@ -1156,14 +1159,19 @@ function renderDaftarBarang(kata='') {
     perbaruiRingkasanKeranjang();
 }
 
+// === SCROLL OTOMATIS DENGAN PEMICU MENCURI START ===
 window.onscroll = function() {
     if (kataKunciAktif) return;
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 250) {
+    
+    // Pemicu diperluas jadi 600px sebelum dasar halaman (mencuri start unduh data)
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) {
         if (!sedangTambahBarangScroll && batasTampilSekarang < daftarBarang.length) {
             sedangTambahBarangScroll = true;
             batasTampilSekarang += JUMLAH_PER_HALAMAN;
             renderDaftarBarang(kataKunciAktif);
-            setTimeout(() => { sedangTambahBarangScroll = false; }, 200);
+            
+            // Jeda dipersingkat jadi 50ms agar animasi buka barang instan
+            setTimeout(() => { sedangTambahBarangScroll = false; }, 50);
         }
     }
 };
