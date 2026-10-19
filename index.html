@@ -1230,7 +1230,7 @@ function cekMinPesan() {
     // KONDISI 1: JIKA TOKO SEDANG TUTUP / LIBUR
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `🔒 Toko sedang TUTUP / LIBUR. Pemesanan tidak dapat dilakukan saat ini.`;
+        peringatan.textContent = `🔒 Toko sedang TUTUP. Mohon maaf pemesanan tidak dapat dilakukan saat ini.`;
         
         if (btn) {
             btn.disabled = true;
