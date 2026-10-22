@@ -1430,7 +1430,13 @@ async function kirimPesananKeRiwayat(dataPesanan) {
     } catch (e) { return false; }
 }
 
+// Variabel flag penanda agar tidak bisa double-click/spam tombol order
+let sedangProsesOrder = false;
+
 async function kirimKeWA() {
+    // 1. CEGATAN DUA KALI KLIK / SPAM ORDER
+    if (sedangProsesOrder) return;
+
     // CEGATAN EKSTRA JIKA TOKO TUTUP
     if (tokoSedangTutup) {
         tampilPesan("🔒 <b>Toko Sedang Tutup / Libur</b><br>Pemesanan belum dapat dilakukan saat ini.");
@@ -1485,6 +1491,8 @@ async function kirimKeWA() {
         return;
     }
 
+    // 2. KUNCI TOMBOL SEGERA SEBELUM PROSES APAPUN
+    sedangProsesOrder = true;
     if (btnWA) {
         btnWA.disabled = true;
         btnWA.innerText = "⏳...";
@@ -1511,18 +1519,28 @@ async function kirimKeWA() {
     };
 
     try {
-        await kirimPesananKeRiwayat(dataPesanan);
-        keranjang = {};
-        renderDaftarBarang();
+        // Kirim data ke Google Sheets di background
+        kirimPesananKeRiwayat(dataPesanan);
+
+        // Buka WhatsApp
         const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
         window.open(urlWA, '_blank');
+
+        // Reset keranjang setelah dikirim
+        keranjang = {};
+        renderDaftarBarang();
+
     } catch (e) {
         tampilPesan("Gagal terhubung, coba lagi!");
     } finally {
-        if (btnWA) {
-            btnWA.disabled = false;
-            btnWA.innerText = "📲 Order";
-        }
+        // Beri jeda 15 detik sebelum tombol bisa diaktifkan kembali
+        setTimeout(() => {
+            sedangProsesOrder = false;
+            if (btnWA) {
+                btnWA.disabled = false;
+                btnWA.innerText = "📲 Order";
+            }
+        }, 15000);
     }
 }
 
