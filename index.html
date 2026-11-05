@@ -691,7 +691,7 @@ async function perbaruiStatusToko() {
     const menitTutup = 16 * 60;
 
     if (hari === 0 || apakahHariLibur) {
-        elemen.textContent = "🔴 LIBUR / TUTUP HARI INI";
+        elemen.textContent = "🔴 TUTUP / HARI LIBUR";
         elemen.style.background = "#ffebee";
         elemen.style.color = "#c62828";
         elemen.style.borderColor = "#ffcdd2";
@@ -1230,7 +1230,7 @@ function cekMinPesan() {
     // KONDISI 1: JIKA TOKO SEDANG TUTUP / LIBUR
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `🔒 Maaf, Lagi Tutup Ya.`;
+        peringatan.textContent = `🔒 Maaf, Lagi Tutup..`;
         
         if (btn) {
             btn.disabled = true;
