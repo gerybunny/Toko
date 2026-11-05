@@ -1020,23 +1020,32 @@ async function fetchDenganCobaUlang(url, maks=3) {
 
 // === MUAT DATA & ALIH TAMPILAN KE RUNNING TEXT ===
 async function muatDariInternet() {
-    if (sedangMemuat) return; sedangMemuat = true;
+    if (sedangMemuat) return; 
+    sedangMemuat = true;
     const infoSpan = document.getElementById('infoMuat');
     
     await ambilRunningTextOnline();
 
-    const cache = ambilCacheBarang();
-    if (cache) {
-        daftarBarang = cache; 
-        renderDaftarBarang(kataKunciAktif); renderDaftarAdmin(); tampilkanBarangHabis();
+    // Jika data cache sudah ada di layar, jangan timpa dengan kosong! 
+    // Cukup biarkan ia tampil, lalu update datanya di belakang layar secara halus.
+    if (daftarBarang.length === 0) {
+        const cache = ambilCacheBarang();
+        if (cache && cache.length > 0) {
+            daftarBarang = cache; 
+            renderDaftarBarang(kataKunciAktif); 
+            renderDaftarAdmin(); 
+            tampilkanBarangHabis();
+        }
     }
 
     let mulaiDari = 0;
     let adaLagi = true;
     let totalMuat = 0;
-    let semuaBarangBaru = [];
+    let semuaBarangBaru = [...daftarBarang]; // Pertahankan data lama jika sudah ada
     
-    if (infoSpan) infoSpan.textContent = 'Menyiapkan data toko...';
+    if (infoSpan && semuaBarangBaru.length === 0) {
+        infoSpan.textContent = 'Menyiapkan data toko...';
+    }
 
     while (adaLagi) {
         try {
@@ -1048,28 +1057,42 @@ async function muatDariInternet() {
                 break;
             }
 
-            semuaBarangBaru = semuaBarangBaru.concat(bagian);
-            totalMuat += bagian.length;
+            // Gabungkan data baru secara aman tanpa menghapus state keranjang yang sedang dipilih
+            bagian.forEach(itemBaru => {
+                const indexEksis = semuaBarangBaru.findIndex(b => b.barisAsliDiSheet === itemBaru.barisAsliDiSheet);
+                const formatItem = {
+                    barisAsliDiSheet: itemBaru.barisAsliDiSheet, 
+                    id: itemBaru.id, 
+                    nama: itemBaru.nama || "Barang",
+                    satuanBesar: itemBaru.satuanBesar || "Dus", 
+                    modal: Number(itemBaru.modal) || 0,
+                    hargaSatuan: Number(itemurBaru?.hargaSatuan || itemBaru.hargaSatuan) || 0, 
+                    hargaGrosir: Number(itemBaru.hargaGrosir) || 0,
+                    minGrosir: Number(itemuBaru?.minGrosir || itemBaru.minGrosir) || 999999, 
+                    hargaDus: Number(itemBaru.hargaDus) || 0,
+                    isiPerDus: Number(itemBaru.isiPerDus) || 0, 
+                    stok: Number(itembarU?.stok || itemBaru.stok) || 0, 
+                    foto: itemBaru.foto || ""
+                };
+
+                if (indexEksis >= 0) {
+                    semuaBarangBaru[indexEksis] = formatItem;
+                } else {
+                    semuaBarangBaru.push(formatItem);
+                }
+            });
+
+            totalMuat = semuaBarangBaru.length;
             mulaiDari += bagian.length;
 
-            daftarBarang = semuaBarangBaru.map(item => ({
-                barisAsliDiSheet: item.barisAsliDiSheet, 
-                id: item.id, 
-                nama: item.nama || "Barang",
-                satuanBesar: item.satuanBesar || "Dus", 
-                modal: Number(item.modal) || 0,
-                hargaSatuan: Number(item.hargaSatuan) || 0, 
-                hargaGrosir: Number(item.hargaGrosir) || 0,
-                minGrosir: Number(item.minGrosir) || 999999, 
-                hargaDus: Number(item.hargaDus) || 0,
-                isiPerDus: Number(item.isiPerDus) || 0, 
-                stok: Number(item.stok) || 0, 
-                foto: item.foto || ""
-            }));
+            daftarBarang = semuaBarangBaru;
             
-            if (infoSpan) infoSpan.textContent = `Mengumpulkan data (${totalMuat} barang)...`;
+            if (infoSpan) infoSpan.textContent = `Memperbarui data (${totalMuat} barang)...`;
             
-            renderDaftarBarang(kataKunciAktif); 
+            // Render hanya jika user sedang tidak mengetik di kolom pencarian
+            if (!kataKunciAktif) {
+                renderDaftarBarang(''); 
+            }
             renderDaftarAdmin(); 
             tampilkanBarangHabis();
 
