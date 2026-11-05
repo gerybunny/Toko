@@ -377,7 +377,6 @@
             -webkit-overflow-scrolling: touch; 
         }
         
-        /* === PERBAIKAN FOTO PRESISI SAMPAI TOMBOL +/- === */
         .item-keranjang { 
             display: flex; 
             align-items: flex-start;
@@ -587,7 +586,7 @@
 
 <script>
 const NOMOR_WA = "62895417898775";
-const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbzuHGqkRfs5LWzNxFTkYM5sTHZjLVhnQb8laDhbk5ENNdVsxeudBvTTbRy4bDgywrpQ/exec";
+const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbzCHkAsBackskPbhrPJKClj31_8unXGdNw79uhlpzFTeE242OZtS4_Yj9S6zxNGPefV/exec";
 
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
@@ -610,9 +609,9 @@ let runningTextGlobal = "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabt
 
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
-let tokoSedangTutup = false; // Penanda status toko global
+let tokoSedangTutup = false; 
 
-// === PENCARIAN MANUAL ===
+// === PENCARIAN MANUAL & PENCARIAN SERVER-SIDE ===
 function cekEnterCari(event) {
     if (event.key === "Enter" || event.keyCode === 13) {
         document.getElementById('kotakCari').blur();
@@ -710,7 +709,6 @@ async function perbaruiStatusToko() {
         tokoSedangTutup = true;
     }
 
-    // Perbarui status tombol order secara otomatis berdasarkan jam buka/tutup
     cekMinPesan();
 }
 
@@ -788,7 +786,7 @@ function tutupKeranjang() {
 
 function lanjutKeFormPemesan() {
     if (tokoSedangTutup) {
-        tampilPesan("🔒 <b>Toko Sedang Tutup / Libur</b><br>Pemesanan belum dapat dilakukan saat ini.");
+        tampilPesan("🔒 <b>Toko Sedang Tutup</b><br>Pemesanan belum dapat dilakukan saat ini.");
         return;
     }
     tutupKeranjang();
@@ -798,7 +796,6 @@ function lanjutKeFormPemesan() {
     }, 320);
 }
 
-/* === MODIFIKASI RENDER KERANJANG DENGAN FOTO PRODUK === */
 function renderKeranjangModal() {
     const wadah = document.getElementById('isiKeranjangModal');
     const totalModal = document.getElementById('totalModalNilai');
@@ -1107,7 +1104,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG (DENGAN OPTIMASI PEMBERATAN GAMBAR & RENDER KELAS ATAS) ===
+// === RENDER DAFTAR BARANG (DENGAN PEMERIKSAAN SERVER-SIDE SEARCH) ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -1166,7 +1163,7 @@ function renderDaftarBarang(kata='') {
     perbaruiRingkasanKeranjang();
 }
 
-// === SCROLL OTOMATIS DENGAN PEMICU MENCURI START ===
+// === SCROLL OTOMATIS ===
 window.onscroll = function() {
     if (kataKunciAktif) return;
     
@@ -1216,18 +1213,98 @@ function kurang(idx) {
     perbaruiRingkasanKeranjang();
 }
 
-function cariBarang() {
-    renderDaftarBarang(document.getElementById('kotakCari').value.trim());
+// 🟢 FUNGSIONALITAS PENCARIAN BARU: SERVER-SIDE SEARCH
+async function cariBarang() {
+    const keyword = document.getElementById('kotakCari').value.trim();
+    
+    // Jika kolom cari kosong, tampilkan kembali daftar barang normal
+    if (!keyword) {
+        renderDaftarBarang('');
+        return;
+    }
+
+    const wadah = document.getElementById('daftarBarang');
+    const indikator = document.getElementById('indikatorScroll');
+    wadah.innerHTML = '<p class="kosong">🔍 Mencari barang di server...</p>';
+    indikator.style.display = 'none';
+
+    try {
+        const res = await fetch(`${URL_PENYIMPANAN}?aksi=cariBarang&keyword=${encodeURIComponent(keyword)}`);
+        const hasilCari = await res.json();
+
+        if (!hasilCari || !Array.isArray(hasilCari) || hasilCari.length === 0) {
+            wadah.innerHTML = '<p class="kosong">🔍 Barang tidak ditemukan di server.</p>';
+            return;
+        }
+
+        // Gabungkan hasil pencarian baru ke daftarBarang (jika belum ada) agar indeks keranjang aman
+        hasilCari.forEach(item => {
+            const ada = daftarBarang.find(b => b.barisAsliDiSheet === item.barisAsliDiSheet);
+            if (!ada) {
+                daftarBarang.push({
+                    barisAsliDiSheet: item.barisAsliDiSheet, 
+                    id: item.id, 
+                    nama: item.nama || "Barang",
+                    satuanBesar: item.satuanBesar || "Dus", 
+                    modal: Number(item.modal) || 0,
+                    hargaSatuan: Number(item.hargaSatuan) || 0, 
+                    hargaGrosir: Number(item.hargaGrosir) || 0,
+                    minGrosir: Number(item.minGrosir) || 999999, 
+                    hargaDus: Number(item.hargaDus) || 0,
+                    isiPerDus: Number(item.isiPerDus) || 0, 
+                    stok: Number(item.stok) || 0, 
+                    foto: item.foto || ""
+                });
+            }
+        });
+
+        // Render khusus item hasil pencarian dari server
+        renderHasilPencarianServer(hasilCari);
+
+    } catch (e) {
+        // Fallback: jika koneksi bermasalah, lakukan pencarian lokal
+        renderDaftarBarang(keyword);
+    }
 }
 
-// === PENYESUAIAN PENTING: CEK TOKO TUTUP/BUKA DAN OTOMATIS DISABLE TOMBOL ORDER ===
+function renderHasilPencarianServer(hasilCari) {
+    const wadah = document.getElementById('daftarBarang');
+    kataKunciAktif = 'mode_pencarian_server';
+
+    const htmlProduk = hasilCari.map(brg => {
+        const idx = daftarBarang.findIndex(b => b.barisAsliDiSheet === brg.barisAsliDiSheet);
+        const jml = keranjang[idx] || 0;
+        const hrg = ambilHarga(brg, jml);
+        const foto = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/200x150/eeeeee/888888?text=Foto+Barang';
+        const habis = brg.stok <= 0;
+        const stokTeks = habis ? `<div class="stok-info stok-habis">HABIS</div>` : `<div class="stok-info stok-aman">Stok: ${brg.stok}</div>`;
+        const grosirTeks = brg.hargaGrosir > 0 && brg.minGrosir > 0 ? `<div class="produk-harga-grosir">Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} ≥${brg.minGrosir}pcs</div>` : '';
+        const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
+        
+        return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy" decoding="async">
+            <div class="produk-nama">${brg.nama}</div>
+            <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
+            ${grosirTeks}${dusTeks}${stokTeks}
+            <div class="jumlah">
+                <button onclick="kurang(${idx})" ${habis ? 'disabled' : ''}>−</button>
+                <input type="number" id="inputJml_${idx}" value="${jml}" min="0" max="${brg.stok || 999}" onchange="aturJumlah(${idx}, this.value)" ${habis ? 'disabled' : ''}>
+                <button onclick="tambah(${idx})" ${habis ? 'disabled' : ''}>+</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    wadah.innerHTML = htmlProduk;
+    perbaruiRingkasanKeranjang();
+}
+
+// === CEK MINIMAL PESANAN ===
 function cekMinPesan() {
     const total = hitungTotal();
     const peringatan = document.getElementById('peringatanMin');
     const btn = document.getElementById('btnKirimWA');
     const btnModal = document.getElementById('btnProsesModal');
 
-    // KONDISI 1: JIKA TOKO SEDANG TUTUP / LIBUR
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
         peringatan.textContent = `🔒 Maaf, Lagi Tutup..`;
@@ -1244,7 +1321,6 @@ function cekMinPesan() {
         return;
     }
 
-    // KONDISI 2: JIKA TOKO BUKA (Normal Check Nominal)
     if (btn) btn.innerHTML = '📲 Order';
     if (btnModal) {
         btnModal.disabled = false;
@@ -1430,16 +1506,13 @@ async function kirimPesananKeRiwayat(dataPesanan) {
     } catch (e) { return false; }
 }
 
-// Variabel flag penanda agar tidak bisa double-click/spam tombol order
 let sedangProsesOrder = false;
 
 async function kirimKeWA() {
-    // 1. CEGATAN DUA KALI KLIK / SPAM ORDER
     if (sedangProsesOrder) return;
 
-    // CEGATAN EKSTRA JIKA TOKO TUTUP
     if (tokoSedangTutup) {
-        tampilPesan("🔒 <b>Toko Sedang Tutup / Libur</b><br>Pemesanan belum dapat dilakukan saat ini.");
+        tampilPesan("🔒 <b>Toko Sedang Tutup</b><br>Pemesanan belum dapat dilakukan saat ini.");
         return;
     }
 
@@ -1491,7 +1564,6 @@ async function kirimKeWA() {
         return;
     }
 
-    // 2. KUNCI TOMBOL SEGERA SEBELUM PROSES APAPUN
     sedangProsesOrder = true;
     if (btnWA) {
         btnWA.disabled = true;
@@ -1519,21 +1591,17 @@ async function kirimKeWA() {
     };
 
     try {
-        // Kirim data ke Google Sheets di background
         kirimPesananKeRiwayat(dataPesanan);
 
-        // Buka WhatsApp
         const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
         window.open(urlWA, '_blank');
 
-        // Reset keranjang setelah dikirim
         keranjang = {};
         renderDaftarBarang();
 
     } catch (e) {
         tampilPesan("Gagal terhubung, coba lagi!");
     } finally {
-        // Beri jeda 15 detik sebelum tombol bisa diaktifkan kembali
         setTimeout(() => {
             sedangProsesOrder = false;
             if (btnWA) {
