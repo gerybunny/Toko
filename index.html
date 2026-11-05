@@ -621,9 +621,11 @@ function cekEnterCari(event) {
 }
 
 function cekSearchClear() {
-    if (document.getElementById('kotakCari').value === "") {
+    const inputCari = document.getElementById('kotakCari');
+    if (inputCari.value === "") {
+        kataKunciAktif = ''; 
         batasTampilSekarang = JUMLAH_PER_HALAMAN;
-        cariBarang();
+        renderDaftarBarang('');
     }
 }
 
@@ -1018,7 +1020,7 @@ async function fetchDenganCobaUlang(url, maks=3) {
     }
 }
 
-// === MUAT DATA & ALIH TAMPILAN KE RUNNING TEXT ===
+// === MUAT DATA LATAR BELAKANG (TANPA HILANGKAN TAMPILAN) ===
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
@@ -1026,8 +1028,6 @@ async function muatDariInternet() {
     
     await ambilRunningTextOnline();
 
-    // Jika data cache sudah ada di layar, jangan timpa dengan kosong! 
-    // Cukup biarkan ia tampil, lalu update datanya di belakang layar secara halus.
     if (daftarBarang.length === 0) {
         const cache = ambilCacheBarang();
         if (cache && cache.length > 0) {
@@ -1041,7 +1041,7 @@ async function muatDariInternet() {
     let mulaiDari = 0;
     let adaLagi = true;
     let totalMuat = 0;
-    let semuaBarangBaru = [...daftarBarang]; // Pertahankan data lama jika sudah ada
+    let semuaBarangBaru = [...daftarBarang];
     
     if (infoSpan && semuaBarangBaru.length === 0) {
         infoSpan.textContent = 'Menyiapkan data toko...';
@@ -1057,7 +1057,6 @@ async function muatDariInternet() {
                 break;
             }
 
-            // Gabungkan data baru secara aman tanpa menghapus state keranjang yang sedang dipilih
             bagian.forEach(itemBaru => {
                 const indexEksis = semuaBarangBaru.findIndex(b => b.barisAsliDiSheet === itemBaru.barisAsliDiSheet);
                 const formatItem = {
@@ -1066,12 +1065,12 @@ async function muatDariInternet() {
                     nama: itemBaru.nama || "Barang",
                     satuanBesar: itemBaru.satuanBesar || "Dus", 
                     modal: Number(itemBaru.modal) || 0,
-                    hargaSatuan: Number(itemurBaru?.hargaSatuan || itemBaru.hargaSatuan) || 0, 
+                    hargaSatuan: Number(itemBaru.hargaSatuan) || 0, 
                     hargaGrosir: Number(itemBaru.hargaGrosir) || 0,
-                    minGrosir: Number(itemuBaru?.minGrosir || itemBaru.minGrosir) || 999999, 
+                    minGrosir: Number(itemBaru.minGrosir) || 999999, 
                     hargaDus: Number(itemBaru.hargaDus) || 0,
                     isiPerDus: Number(itemBaru.isiPerDus) || 0, 
-                    stok: Number(itembarU?.stok || itemBaru.stok) || 0, 
+                    stok: Number(itemBaru.stok) || 0, 
                     foto: itemBaru.foto || ""
                 };
 
@@ -1089,7 +1088,6 @@ async function muatDariInternet() {
             
             if (infoSpan) infoSpan.textContent = `Memperbarui data (${totalMuat} barang)...`;
             
-            // Render hanya jika user sedang tidak mengetik di kolom pencarian
             if (!kataKunciAktif) {
                 renderDaftarBarang(''); 
             }
@@ -1127,7 +1125,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG (DENGAN PEMERIKSAAN SERVER-SIDE SEARCH) ===
+// === RENDER DAFTAR BARANG (LOKAL) ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -1236,12 +1234,13 @@ function kurang(idx) {
     perbaruiRingkasanKeranjang();
 }
 
-// 🟢 FUNGSIONALITAS PENCARIAN BARU: SERVER-SIDE SEARCH
+// 🟢 FUNGSIONALITAS PENCARIAN SERVER-SIDE SEARCH
 async function cariBarang() {
     const keyword = document.getElementById('kotakCari').value.trim();
     
-    // Jika kolom cari kosong, tampilkan kembali daftar barang normal
     if (!keyword) {
+        kataKunciAktif = '';
+        batasTampilSekarang = JUMLAH_PER_HALAMAN;
         renderDaftarBarang('');
         return;
     }
@@ -1260,7 +1259,8 @@ async function cariBarang() {
             return;
         }
 
-        // Gabungkan hasil pencarian baru ke daftarBarang (jika belum ada) agar indeks keranjang aman
+        kataKunciAktif = keyword;
+
         hasilCari.forEach(item => {
             const ada = daftarBarang.find(b => b.barisAsliDiSheet === item.barisAsliDiSheet);
             if (!ada) {
@@ -1281,18 +1281,16 @@ async function cariBarang() {
             }
         });
 
-        // Render khusus item hasil pencarian dari server
         renderHasilPencarianServer(hasilCari);
 
     } catch (e) {
-        // Fallback: jika koneksi bermasalah, lakukan pencarian lokal
+        kataKunciAktif = keyword;
         renderDaftarBarang(keyword);
     }
 }
 
 function renderHasilPencarianServer(hasilCari) {
     const wadah = document.getElementById('daftarBarang');
-    kataKunciAktif = 'mode_pencarian_server';
 
     const htmlProduk = hasilCari.map(brg => {
         const idx = daftarBarang.findIndex(b => b.barisAsliDiSheet === brg.barisAsliDiSheet);
