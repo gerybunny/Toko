@@ -1008,15 +1008,16 @@ async function fetchDenganCobaUlang(url, maks=3) {
     }
 }
 
-// ⚡ PEMUATAN DATA STREAMING NGEBUT (TANPA JEDA & TANPA OVER-RENDER)
+// ⚡ PEMUATAN DATA INSTAN (CACHE DIDULUHKAN, SERVER DI BELAKANG)
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
     const infoSpan = document.getElementById('infoMuat');
     
+    // 1. Ambil running text secara senyap di latar belakang
     ambilRunningTextOnline();
 
-    // Utamakan Cache Dulu Agar Langsung Muncul Instan
+    // 2. LANGSUNG TAMPILKAN DARI CACHE (SUPAYA KARTU BARANG LANGSUNG MUNCUL TANPA TUNGGU TEKS "MENYIAPKAN DATA")
     if (daftarBarang.length === 0) {
         const cache = ambilCacheBarang();
         if (cache && cache.length > 0) {
@@ -1024,17 +1025,20 @@ async function muatDariInternet() {
             renderDaftarBarang(kataKunciAktif); 
             renderDaftarAdmin(); 
             tampilkanBarangHabis();
+            if (infoSpan) infoSpan.textContent = ''; // Langsung kosongkan teks pemuatan agar bersih
         }
     }
 
     let mulaiDari = 0;
     let adaLagi = true;
     let semuaBarangBaru = [...daftarBarang];
-    
+
+    // Jika belum ada cache sama sekali, baru tampilkan teks penyiapan
     if (infoSpan && semuaBarangBaru.length === 0) {
         infoSpan.textContent = 'Menyiapkan data toko...';
     }
 
+    // 3. TARIK PEMBARUAN DARI SERVER DI LATAR BELAKANG
     while (adaLagi) {
         try {
             const res = await fetchDenganCobaUlang(`${URL_PENYIMPANAN}?aksi=ambilBagianBarang&mulai=${mulaiDari}&batas=${JUMLAH_PER_AMBIL}`);
@@ -1072,9 +1076,7 @@ async function muatDariInternet() {
             mulaiDari += bagian.length;
             daftarBarang = semuaBarangBaru;
 
-            if (infoSpan) infoSpan.textContent = `Memperbarui data (${daftarBarang.length} barang)...`;
-
-            // Render hanya jika belum ada kata kunci pencarian aktif
+            // Render ulang pelan-pelan hanya jika belum ada kata kunci pencarian aktif
             if (!kataKunciAktif) {
                 renderDaftarBarang(''); 
             }
@@ -1090,6 +1092,7 @@ async function muatDariInternet() {
         tampilkanBarangHabis();
     }
 
+    if (infoSpan) infoSpan.textContent = ''; // Bersihkan teks status muat setelah selesai
     aktifkanRunningText();
     sedangMemuat = false;
 }
