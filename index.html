@@ -234,6 +234,40 @@
             border-radius: 4px;
         }
 
+        /* === SKELETON LOADING (KERANGKA KOSONG BERDENYUT) === */
+        @keyframes denyutSkeleton {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .skeleton-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: denyutSkeleton 1.2s infinite ease-in-out;
+        }
+        .skeleton-img {
+            width: 100%;
+            height: 120px;
+            background: #e0e0e0;
+            border-radius: 8px;
+        }
+        .skeleton-line {
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 4px;
+        }
+        .skeleton-line.short {
+            width: 60%;
+        }
+        .skeleton-line.medium {
+            width: 80%;
+        }
+
         .kosong {
             text-align: center;
             color: #888;
@@ -502,7 +536,7 @@
         </div>
     </div>
 
-    <div id="infoMuatWrapper" class="info-muat-wrapper">
+    <div id="infoMuatWrapper" class="info-muat-wrapper" style="display:none;">
         <span id="infoMuat">Memuat data...</span>
     </div>
 
@@ -511,7 +545,13 @@
 
 <!-- DAFTAR BARANG -->
 <div class="daftar-barang-wrapper">
-    <div id="daftarBarang" class="grid-produk"></div>
+    <div id="daftarBarang" class="grid-produk">
+        <!-- SKELETON LOADING INSTAN (MUNCUL SEBELUM DATA MASUK) -->
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
+    </div>
     <div id="indikatorScroll" class="indikator-scroll-bawah" style="display:none;">⏳ Memuat barang lainnya...</div>
 </div>
 
@@ -585,7 +625,7 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbxgUR_2YS5khpQt
 
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
-const JUMLAH_PER_AMBIL = 10; // ⚡ Ditingkatkan ke 20 per request agar jauh lebih cepat
+const JUMLAH_PER_AMBIL = 20;
 const JUMLAH_PER_HALAMAN = 10;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
@@ -755,6 +795,7 @@ function aktifkanRunningText() {
     const wrapper = document.getElementById('infoMuatWrapper');
     if (!wrapper) return;
     
+    wrapper.style.display = 'block';
     wrapper.classList.add('running-mode');
     wrapper.innerHTML = `<span class="running-text-span">${runningTextGlobal}</span>`;
 }
@@ -1008,37 +1049,26 @@ async function fetchDenganCobaUlang(url, maks=3) {
     }
 }
 
-// ⚡ PEMUATAN DATA INSTAN (CACHE DIDULUHKAN, SERVER DI BELAKANG)
+// ⚡ PEMUATAN DATA STREAMING NGEBUT (DENGAN INSTANT CACHE LOAD)
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
-    const infoSpan = document.getElementById('infoMuat');
     
-    // 1. Ambil running text secara senyap di latar belakang
     ambilRunningTextOnline();
 
-    // 2. LANGSUNG TAMPILKAN DARI CACHE (SUPAYA KARTU BARANG LANGSUNG MUNCUL TANPA TUNGGU TEKS "MENYIAPKAN DATA")
-    if (daftarBarang.length === 0) {
-        const cache = ambilCacheBarang();
-        if (cache && cache.length > 0) {
-            daftarBarang = cache; 
-            renderDaftarBarang(kataKunciAktif); 
-            renderDaftarAdmin(); 
-            tampilkanBarangHabis();
-            if (infoSpan) infoSpan.textContent = ''; // Langsung kosongkan teks pemuatan agar bersih
-        }
+    // 1. Cek Cache Lokal Duluan (Tampil Instan Tanpa Blank Putih)
+    const cache = ambilCacheBarang();
+    if (cache && cache.length > 0) {
+        daftarBarang = cache; 
+        renderDaftarBarang(kataKunciAktif); 
+        renderDaftarAdmin(); 
+        tampilkanBarangHabis();
     }
 
     let mulaiDari = 0;
     let adaLagi = true;
     let semuaBarangBaru = [...daftarBarang];
-
-    // Jika belum ada cache sama sekali, baru tampilkan teks penyiapan
-    if (infoSpan && semuaBarangBaru.length === 0) {
-        infoSpan.textContent = 'Menyiapkan data toko...';
-    }
-
-    // 3. TARIK PEMBARUAN DARI SERVER DI LATAR BELAKANG
+    
     while (adaLagi) {
         try {
             const res = await fetchDenganCobaUlang(`${URL_PENYIMPANAN}?aksi=ambilBagianBarang&mulai=${mulaiDari}&batas=${JUMLAH_PER_AMBIL}`);
@@ -1076,7 +1106,6 @@ async function muatDariInternet() {
             mulaiDari += bagian.length;
             daftarBarang = semuaBarangBaru;
 
-            // Render ulang pelan-pelan hanya jika belum ada kata kunci pencarian aktif
             if (!kataKunciAktif) {
                 renderDaftarBarang(''); 
             }
@@ -1092,7 +1121,6 @@ async function muatDariInternet() {
         tampilkanBarangHabis();
     }
 
-    if (infoSpan) infoSpan.textContent = ''; // Bersihkan teks status muat setelah selesai
     aktifkanRunningText();
     sedangMemuat = false;
 }
@@ -1117,13 +1145,10 @@ function ambilHarga(brg, jml) {
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
-    wadah.innerHTML = '';
     kataKunciAktif = kata;
     
     if (daftarBarang.length === 0) {
-        wadah.innerHTML = '<p class="kosong">📭 Data barang belum tersedia.</p>';
-        indikator.style.display = 'none';
-        perbaruiRingkasanKeranjang(); return;
+        return; // Biarkan skeleton tampil jika belum ada data sama sekali di memori/cache
     }
     
     const filter = kataKunciAktif 
