@@ -34,7 +34,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(242, 242, 242, 0.25);
+            background: rgba(242, 242, 242, 0.85);
             backdrop-filter: blur(8px);
             padding-bottom: 4px;
         }
@@ -82,7 +82,7 @@
             transition: all 0.3s ease;
         }
 
-        /* === WADAH TEKS PEMUATAN / RUNNING TEXT (TRANSPARAN) === */
+        /* === WADAH TEKS PEMUATAN / RUNNING TEXT === */
         .info-muat-wrapper {
             width: calc(100% - 20px);
             margin: 4px 10px 4px 10px;
@@ -99,9 +99,8 @@
             transition: all 0.3s ease;
         }
         
-        /* Kelas ketika berubah jadi Running Text */
         .info-muat-wrapper.running-mode {
-            background: rgba(255, 243, 205, 0.20);
+            background: rgba(255, 243, 205, 0.40);
             border: 1px solid rgba(255, 238, 186, 0.8);
             color: #856404;
             text-align: left;
@@ -257,7 +256,7 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: rgba(242, 242, 242, 0.25);
+            background: rgba(242, 242, 242, 0.90);
             backdrop-filter: blur(8px);
             padding: 8px 10px;
             z-index: 90;
@@ -298,8 +297,6 @@
             white-space: nowrap;
             height: 35px;
             box-sizing: border-box !important;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2) !important;
-            transition: transform 0.1s ease, background-color 0.1s ease !important;
             user-select: none !important;
         }
         .btn-aksi-mini:active {
@@ -316,8 +313,7 @@
         }
 
         .peringatan {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(8px);
+            background: #fff;
             padding: 6px;
             border-radius: 6px;
             color: #dc3545;
@@ -325,6 +321,7 @@
             margin-bottom: 6px;
             display: none;
             text-align: center;
+            border: 1px solid #ffcdd2;
         }
 
         /* === MODAL KERANJANG BELANJA === */
@@ -505,7 +502,6 @@
         </div>
     </div>
 
-    <!-- WADAH TEKS PEMUATAN YANG AKAN BERUBAH JADI RUNNING TEXT SETELAH SELESAI -->
     <div id="infoMuatWrapper" class="info-muat-wrapper">
         <span id="infoMuat">Memuat data...</span>
     </div>
@@ -545,7 +541,6 @@
     </div>
     
     <div class="admin-form" id="adminForm">
-        <!-- KOTAK PENGATURAN RUNNING TEXT ONLINE DI ADMIN -->
         <div style="background: #fff3cd; padding: 10px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;">
             <label style="font-size: 12px; font-weight: bold; color: #856404;">📢 Pengaturan Running Text Online:</label>
             <input type="text" id="inputRunningTextAdmin" placeholder="Ketik kalimat running text..." style="font-size: 13px; border-color: #ffc107;">
@@ -590,7 +585,7 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbxgUR_2YS5khpQt
 
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
-const JUMLAH_PER_AMBIL = 10;
+const JUMLAH_PER_AMBIL = 20; // ⚡ Ditingkatkan ke 20 per request agar jauh lebih cepat
 const JUMLAH_PER_HALAMAN = 10;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
@@ -611,7 +606,6 @@ let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
 let tokoSedangTutup = false; 
 
-// === PENCARIAN MANUAL & PENCARIAN SERVER-SIDE ===
 function cekEnterCari(event) {
     if (event.key === "Enter" || event.keyCode === 13) {
         document.getElementById('kotakCari').blur();
@@ -642,7 +636,6 @@ function cekSearchAdminClear() {
     }
 }
 
-// === POPUP CUSTOM ===
 function tampilPesan(pesan, judul = "TOKO BP. AMAN") {
     document.getElementById('judulModalPesan').textContent = judul;
     document.getElementById('isiModalPesan').innerHTML = pesan;
@@ -655,13 +648,12 @@ function tutupPesanPeringatan() {
     document.getElementById('kotakModalPesan').style.display = 'none';
 }
 
-// === CEK STATUS TOKO & HARI LIBUR NASIONAL OTOMATIS ===
 async function perbaruiStatusToko() {
     const elemen = document.getElementById('statusTokoOtomatis');
     if (!elemen) return;
 
     const sekarang = new Date();
-    const hari = sekarang.getDay(); // 0 = Minggu
+    const hari = sekarang.getDay();
     const bulan = String(sekarang.getMonth() + 1).padStart(2, '0');
     const tanggal = String(sekarang.getDate()).padStart(2, '0');
     
@@ -714,7 +706,6 @@ async function perbaruiStatusToko() {
     cekMinPesan();
 }
 
-// === RUNNING TEXT ONLINE DARI GOOGLE SHEET ===
 async function ambilRunningTextOnline() {
     try {
         const res = await fetch(`${URL_PENYIMPANAN}?aksi=ambilRunningText`);
@@ -768,7 +759,6 @@ function aktifkanRunningText() {
     wrapper.innerHTML = `<span class="running-text-span">${runningTextGlobal}</span>`;
 }
 
-// === KERANJANG MODAL ===
 function bukaKeranjang() {
     const modal = document.getElementById('modalKeranjang');
     const penutup = document.getElementById('penutupKeranjang');
@@ -872,7 +862,6 @@ function hapusDariKeranjang(i) {
     perbaruiRingkasanKeranjang();
 }
 
-// === GPS / LOKASI ===
 function gabungAlamatDanLokasi(lat, lng) {
     const inputAlamat = document.getElementById('alamatPemesan');
     const alamatLama = inputAlamat.value.trim();
@@ -990,7 +979,6 @@ async function ambilLokasiGPS() {
     );
 }
 
-// === CACHE & UTILS ===
 function simpanCacheBarang(data) {
     try { localStorage.setItem("cacheBarang", JSON.stringify(data)); localStorage.setItem("waktuCacheBarang", Date.now()); } catch (e) {}
 }
@@ -1014,20 +1002,21 @@ function tampilkanBarangHabis() {
 async function fetchDenganCobaUlang(url, maks=3) {
     for (let i=1; i<=maks; i++) {
         try {
-            const res = await fetch(url, {signal: AbortSignal.timeout(20000)});
+            const res = await fetch(url, {signal: AbortSignal.timeout(15000)});
             if (res.ok) return res; throw new Error(`Status: ${res.status}`);
-        } catch (e) { if (i === maks) throw e; await new Promise(t => setTimeout(t, i*1000)); }
+        } catch (e) { if (i === maks) throw e; await new Promise(t => setTimeout(t, i*500)); }
     }
 }
 
-// === MUAT DATA LATAR BELAKANG (TANPA HILANGKAN TAMPILAN) ===
+// ⚡ PEMUATAN DATA STREAMING NGEBUT (TANPA JEDA & TANPA OVER-RENDER)
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
     const infoSpan = document.getElementById('infoMuat');
     
-    await ambilRunningTextOnline();
+    ambilRunningTextOnline();
 
+    // Utamakan Cache Dulu Agar Langsung Muncul Instan
     if (daftarBarang.length === 0) {
         const cache = ambilCacheBarang();
         if (cache && cache.length > 0) {
@@ -1040,7 +1029,6 @@ async function muatDariInternet() {
 
     let mulaiDari = 0;
     let adaLagi = true;
-    let totalMuat = 0;
     let semuaBarangBaru = [...daftarBarang];
     
     if (infoSpan && semuaBarangBaru.length === 0) {
@@ -1081,20 +1069,15 @@ async function muatDariInternet() {
                 }
             });
 
-            totalMuat = semuaBarangBaru.length;
             mulaiDari += bagian.length;
-
             daftarBarang = semuaBarangBaru;
-            
-            if (infoSpan) infoSpan.textContent = `Memperbarui data (${totalMuat} barang)...`;
-            
+
+            if (infoSpan) infoSpan.textContent = `Memperbarui data (${daftarBarang.length} barang)...`;
+
+            // Render hanya jika belum ada kata kunci pencarian aktif
             if (!kataKunciAktif) {
                 renderDaftarBarang(''); 
             }
-            renderDaftarAdmin(); 
-            tampilkanBarangHabis();
-
-            await new Promise(resolve => setTimeout(resolve, 50));
 
         } catch (err) {
             adaLagi = false;
@@ -1103,6 +1086,8 @@ async function muatDariInternet() {
 
     if (semuaBarangBaru.length > 0) {
         simpanCacheBarang(daftarBarang);
+        renderDaftarAdmin(); 
+        tampilkanBarangHabis();
     }
 
     aktifkanRunningText();
@@ -1125,7 +1110,7 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG (LOKAL) ===
+// === RENDER DAFTAR BARANG (LOKAL & OPTIMAL) ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
@@ -1184,7 +1169,6 @@ function renderDaftarBarang(kata='') {
     perbaruiRingkasanKeranjang();
 }
 
-// === SCROLL OTOMATIS ===
 window.onscroll = function() {
     if (kataKunciAktif) return;
     
@@ -1234,7 +1218,6 @@ function kurang(idx) {
     perbaruiRingkasanKeranjang();
 }
 
-// 🟢 FUNGSIONALITAS PENCARIAN SERVER-SIDE SEARCH
 async function cariBarang() {
     const keyword = document.getElementById('kotakCari').value.trim();
     
@@ -1319,7 +1302,6 @@ function renderHasilPencarianServer(hasilCari) {
     perbaruiRingkasanKeranjang();
 }
 
-// === CEK MINIMAL PESANAN ===
 function cekMinPesan() {
     const total = hitungTotal();
     const peringatan = document.getElementById('peringatanMin');
@@ -1368,7 +1350,6 @@ function hitungTotal() {
     return t;
 }
 
-// === ADMIN ===
 function toggleAdmin() { 
     document.getElementById('adminPanel').classList.add('active');
     if (pinBenar) bukaPanelAdmin();
