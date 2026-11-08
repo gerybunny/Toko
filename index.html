@@ -34,7 +34,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(242, 242, 242, 0.85);
+            background: rgba(242, 242, 242, 0.25);
             backdrop-filter: blur(8px);
             padding-bottom: 4px;
         }
@@ -100,7 +100,7 @@
         }
         
         .info-muat-wrapper.running-mode {
-            background: rgba(255, 243, 205, 0.40);
+            background: rgba(255, 243, 205, 0.20);
             border: 1px solid rgba(255, 238, 186, 0.8);
             color: #856404;
             text-align: left;
@@ -256,7 +256,7 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
-            background: rgba(242, 242, 242, 0.90);
+            background: rgba(242, 242, 242, 0.25);
             backdrop-filter: blur(8px);
             padding: 8px 10px;
             z-index: 90;
@@ -313,7 +313,8 @@
         }
 
         .peringatan {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
             padding: 6px;
             border-radius: 6px;
             color: #dc3545;
@@ -321,7 +322,6 @@
             margin-bottom: 6px;
             display: none;
             text-align: center;
-            border: 1px solid #ffcdd2;
         }
 
         /* === MODAL KERANJANG BELANJA === */
@@ -585,7 +585,7 @@ const URL_PENYIMPANAN = "https://script.google.com/macros/s/AKfycbxgUR_2YS5khpQt
 
 const MINIMAL_PESANAN = 20000;
 const KADALUARSA_CACHE = 2 * 60 * 1000;
-const JUMLAH_PER_AMBIL = 20; // ⚡ Ditingkatkan ke 20 per request agar jauh lebih cepat
+const JUMLAH_PER_AMBIL = 10; // ⚡ Ditingkatkan ke 20 per request agar jauh lebih cepat
 const JUMLAH_PER_HALAMAN = 10;
 const MAKS_FILE_FOTO_MB = 5;
 const MAKS_LEBAR_FOTO = 300;
