@@ -234,11 +234,11 @@
             border-radius: 4px;
         }
 
-        /* === SKELETON LOADING (KERANGKA KOSONG BERDENYUT) === */
+        /* === SKELETON LOADING (3 BARIS X 2 KOLOM = 6 KARTU BERDENYUT) === */
         @keyframes denyutSkeleton {
-            0% { opacity: 0.6; }
+            0% { opacity: 0.5; }
             50% { opacity: 1; }
-            100% { opacity: 0.6; }
+            100% { opacity: 0.5; }
         }
         .skeleton-card {
             background: #fff;
@@ -536,8 +536,9 @@
         </div>
     </div>
 
-    <div id="infoMuatWrapper" class="info-muat-wrapper" style="display:none;">
-        <span id="infoMuat">Memuat data...</span>
+    <!-- RUNNING TEXT / INFO PEMUATAN KEMBALI AKTIF -->
+    <div id="infoMuatWrapper" class="info-muat-wrapper">
+        <span id="infoMuat">Memyiapkan data barang...</span>
     </div>
 
     <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
@@ -546,7 +547,9 @@
 <!-- DAFTAR BARANG -->
 <div class="daftar-barang-wrapper">
     <div id="daftarBarang" class="grid-produk">
-        <!-- SKELETON LOADING INSTAN (MUNCUL SEBELUM DATA MASUK) -->
+        <!-- ⚡ 6 KARTU SKELETON (3 BARIS X 2 KOLOM) PENUH LAYAR -->
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
@@ -1053,6 +1056,7 @@ async function fetchDenganCobaUlang(url, maks=3) {
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
+    const infoSpan = document.getElementById('infoMuat');
     
     ambilRunningTextOnline();
 
@@ -1063,12 +1067,17 @@ async function muatDariInternet() {
         renderDaftarBarang(kataKunciAktif); 
         renderDaftarAdmin(); 
         tampilkanBarangHabis();
+        if (infoSpan) infoSpan.textContent = ''; 
     }
 
     let mulaiDari = 0;
     let adaLagi = true;
     let semuaBarangBaru = [...daftarBarang];
     
+    if (infoSpan && semuaBarangBaru.length === 0) {
+        infoSpan.textContent = 'Menyiapkan data barang...';
+    }
+
     while (adaLagi) {
         try {
             const res = await fetchDenganCobaUlang(`${URL_PENYIMPANAN}?aksi=ambilBagianBarang&mulai=${mulaiDari}&batas=${JUMLAH_PER_AMBIL}`);
@@ -1106,6 +1115,8 @@ async function muatDariInternet() {
             mulaiDari += bagian.length;
             daftarBarang = semuaBarangBaru;
 
+            if (infoSpan) infoSpan.textContent = `Memperbarui data (${daftarBarang.length} barang)...`;
+
             if (!kataKunciAktif) {
                 renderDaftarBarang(''); 
             }
@@ -1121,6 +1132,7 @@ async function muatDariInternet() {
         tampilkanBarangHabis();
     }
 
+    if (infoSpan) infoSpan.textContent = '';
     aktifkanRunningText();
     sedangMemuat = false;
 }
@@ -1148,7 +1160,7 @@ function renderDaftarBarang(kata='') {
     kataKunciAktif = kata;
     
     if (daftarBarang.length === 0) {
-        return; // Biarkan skeleton tampil jika belum ada data sama sekali di memori/cache
+        return; // Biarkan 6 kartu skeleton tampil penuh jika data belum masuk
     }
     
     const filter = kataKunciAktif 
