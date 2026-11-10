@@ -288,18 +288,18 @@
             grid-column: 1 / -1;
         }
 
-        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN (BACKGROUND SOLID RAPI SENADA) === */
+        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN (MEPET KIRI KANAN SELEBAR CARD) === */
         #modalGambar {
             display: none;
             position: fixed;
             z-index: 99999;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #ffffff; /* Background solid senada dengan latar aplikasi */
+            background: #ffffff;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
+            padding: 15px 15px;
         }
         .wadah-gambar-zoom {
             flex: 1;
@@ -307,35 +307,19 @@
             justify-content: center;
             align-items: center;
             width: 100%;
+            max-width: 460px; /* Lebar maksimal disamakan persis dengan card detail harga di bawahnya */
             max-height: calc(100vh - 160px);
             position: relative;
             cursor: pointer;
         }
         #gambarBesar {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 10px;
+            width: 100%;         /* Melebar penuh mengisi wadah */
+            height: 100%;
+            max-height: calc(100vh - 170px);
+            border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            object-fit: contain;
+            object-fit: cover;   /* Mengisi penuh ruang kotak tanpa sisa ruang kosong di samping */
             background: #fff;
-            padding: 4px;
-        }
-        .tombol-tutup-zoom {
-            position: absolute;
-            top: 10px; right: 15px;
-            color: #333;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-            z-index: 100000;
-            background: #fff;
-            width: 38px; height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
         /* Kotak Detail Barang di Bawah Modal Zoom */
         .zoom-detail-bawah {
@@ -606,9 +590,8 @@
 </head>
 <body>
 
-<!-- MODAL ZOOM / LIGHTBOX FULLSCREEN DENGAN DETAIL & TOMBOL DI BAWAH -->
+<!-- MODAL ZOOM / LIGHTBOX FULLSCREEN DENGAN GAMBAR MEPET KIRI KANAN -->
 <div id="modalGambar">
-    <span class="tombol-tutup-zoom" onclick="tutupZoomFoto()">&times;</span>
     <div class="wadah-gambar-zoom" onclick="tutupZoomFoto()">
         <img id="gambarBesar" src="" alt="Zoom Foto">
     </div>
@@ -796,7 +779,7 @@ let runningTextGlobal = "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabt
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
 let tokoSedangTutup = false; 
-let indeksZoomAktif = null; // Menyimpan index barang yang sedang dizoom
+let indeksZoomAktif = null;
 
 // === FUNGSI ZOOM / LIGHTBOX FULLSCREEN FOTO DENGAN DETAIL ===
 function bukaZoomFoto(idx) {
@@ -813,7 +796,6 @@ function bukaZoomFoto(idx) {
     
     imgBesar.src = urlFoto;
     
-    // Perbarui isi detail di bawah modal zoom
     perbaruiTampilanZoomDetail();
     
     modal.style.display = "flex";
@@ -836,7 +818,6 @@ function perbaruiTampilanZoomDetail() {
     document.getElementById('zoomNamaBarang').textContent = brg.nama;
     document.getElementById('zoomHargaBarang').textContent = `Rp ${hrg.toLocaleString('id-ID')}`;
     
-    // Info Grosir dan Dus disamakan persis seperti di card utama
     const grosirEl = document.getElementById('zoomInfoGrosir');
     if (brg.hargaGrosir > 0 && brg.minGrosir > 0) {
         grosirEl.textContent = `Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} ≥${brg.minGrosir}pcs`;
@@ -1297,7 +1278,6 @@ async function muatDariInternet() {
     
     ambilRunningTextOnline();
 
-    // 1. Cek Cache Lokal Duluan (Tampil Instan Tanpa Blank Putih)
     const cache = ambilCacheBarang();
     if (cache && cache.length > 0) {
         daftarBarang = cache; 
@@ -1389,14 +1369,13 @@ function ambilHarga(brg, jml) {
     return s;
 }
 
-// === RENDER DAFTAR BARANG (LOKAL & OPTIMAL) ===
 function renderDaftarBarang(kata='') {
     const wadah = document.getElementById('daftarBarang');
     const indikator = document.getElementById('indikatorScroll');
     kataKunciAktif = kata;
     
     if (daftarBarang.length === 0) {
-        return; // Biarkan 8 kartu skeleton tampil penuh jika data belum masuk
+        return;
     }
     
     const filter = kataKunciAktif 
