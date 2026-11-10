@@ -182,6 +182,11 @@
             border-radius: 8px;
             margin-bottom: 6px;
             background: #eee;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .produk-img:active {
+            opacity: 0.8;
         }
         .produk-nama {
             font-weight: bold;
@@ -234,7 +239,7 @@
             border-radius: 4px;
         }
 
-        /* === SKELETON LOADING (3 BARIS X 2 KOLOM = 6 KARTU BERDENYUT) === */
+        /* === SKELETON LOADING (8 KARTU BERDENYUT) === */
         @keyframes denyutSkeleton {
             0% { opacity: 0.5; }
             50% { opacity: 1; }
@@ -281,6 +286,36 @@
             font-size: 12px;
             color: #666;
             grid-column: 1 / -1;
+        }
+
+        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN === */
+        #modalGambar {
+            display: none;
+            position: fixed;
+            z-index: 99999;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px;
+        }
+        #modalGambar img {
+            max-width: 95%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            object-fit: contain;
+        }
+        .tombol-tutup-zoom {
+            position: absolute;
+            top: 15px; right: 20px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
         }
 
         /* === FORM PEMESAN BAWAH === */
@@ -484,6 +519,12 @@
 </head>
 <body>
 
+<!-- MODAL ZOOM / LIGHTBOX GAMBAR FULLSCREEN -->
+<div id="modalGambar" onclick="tutupZoomFoto()">
+    <span class="tombol-tutup-zoom">&times;</span>
+    <img id="gambarBesar" src="" alt="Zoom Foto">
+</div>
+
 <!-- MODAL PERINGATAN / POPUP CUSTOM -->
 <div id="penutupModalPesan" class="penutup-layar" onclick="tutupPesanPeringatan()"></div>
 <div id="kotakModalPesan" class="kotak-konfirmasi" style="border-color:#007bff;">
@@ -538,7 +579,7 @@
 
     <!-- RUNNING TEXT / INFO PEMUATAN KEMBALI AKTIF -->
     <div id="infoMuatWrapper" class="info-muat-wrapper">
-        <span id="infoMuat">Memyiapkan data barang...</span>
+        <span id="infoMuat">Menyiapkan data barang...</span>
     </div>
 
     <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
@@ -650,6 +691,21 @@ let runningTextGlobal = "📢 Selamat datang di Toko Bp. Aman! Buka Senin - Sabt
 let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
 let tokoSedangTutup = false; 
+
+// === FUNGSI ZOOM / LIGHTBOX FULLSCREEN FOTO ===
+function bukaZoomFoto(urlFoto) {
+    const modal = document.getElementById('modalGambar');
+    const imgBesar = document.getElementById('gambarBesar');
+    
+    if (!urlFoto || urlFoto.trim() === "" || urlFoto.includes('placeholder')) return;
+    
+    imgBesar.src = urlFoto;
+    modal.style.display = "flex";
+}
+
+function tutupZoomFoto() {
+    document.getElementById('modalGambar').style.display = "none";
+}
 
 function cekEnterCari(event) {
     if (event.key === "Enter" || event.keyCode === 13) {
@@ -852,7 +908,7 @@ function renderKeranjangModal() {
                 const fotoBrg = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/100/eeeeee/888888?text=Foto';
 
                 html += `<div class="item-keranjang">
-                    <img src="${fotoBrg}" class="foto-item-keranjang" alt="${brg.nama}">
+                    <img src="${fotoBrg}" class="foto-item-keranjang" alt="${brg.nama}" onclick="bukaZoomFoto('${fotoBrg}')" style="cursor:pointer;" title="Klik perbesar">
                     <div class="info-detail-item">
                         <div class="nama-item">${brg.nama}</div>
                         <div class="harga-item">Rp ${hrg.toLocaleString('id-ID')} / pcs</div>
@@ -1162,7 +1218,7 @@ function renderDaftarBarang(kata='') {
     kataKunciAktif = kata;
     
     if (daftarBarang.length === 0) {
-        return; // Biarkan 6 kartu skeleton tampil penuh jika data belum masuk
+        return; // Biarkan 8 kartu skeleton tampil penuh jika data belum masuk
     }
     
     const filter = kataKunciAktif 
@@ -1188,7 +1244,7 @@ function renderDaftarBarang(kata='') {
         const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
         
         return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
-            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy" decoding="async">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto('${foto}')" loading="lazy" decoding="async" title="Klik perbesar foto">
             <div class="produk-nama">${brg.nama}</div>
             <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
             ${grosirTeks}${dusTeks}${stokTeks}
@@ -1328,7 +1384,7 @@ function renderHasilPencarianServer(hasilCari) {
         const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
         
         return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
-            <img src="${foto}" class="produk-img" alt="${brg.nama}" loading="lazy" decoding="async">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto('${foto}')" loading="lazy" decoding="async" title="Klik perbesar foto">
             <div class="produk-nama">${brg.nama}</div>
             <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
             ${grosirTeks}${dusTeks}${stokTeks}
