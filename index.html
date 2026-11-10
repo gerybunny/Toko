@@ -180,7 +180,7 @@
             height: 120px;
             object-fit: cover;
             border-radius: 8px;
-            margin-bottom: 10px; /* Diatur agak renggang dari teks di bawahnya biar gambar terbuka penuh */
+            margin-bottom: 10px; /* Diberi jarak renggang agar gambar terbuka penuh dan rapi dari teks di bawahnya */
             background: #eee;
             cursor: pointer;
             transition: opacity 0.2s;
@@ -288,7 +288,7 @@
             grid-column: 1 / -1;
         }
 
-        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN KODE BAWAAN === */
+        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN === */
         #modalGambar {
             display: none;
             position: fixed;
@@ -579,7 +579,7 @@
 
     <!-- RUNNING TEXT / INFO PEMUATAN KEMBALI AKTIF -->
     <div id="infoMuatWrapper" class="info-muat-wrapper">
-        <span id="infoMuat">Menyiapkan data barang...</span>
+        <span id="infoMuat" class="running-text-span">Menyiapkan data barang...</span>
     </div>
 
     <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
