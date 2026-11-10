@@ -288,7 +288,7 @@
             grid-column: 1 / -1;
         }
 
-        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN === */
+        /* === MODAL LIGHTBOX / ZOOM GAMBAR + DETAIL BARANG (80%-85% LEBAR LAYAR) === */
         #modalGambar {
             display: none;
             position: fixed;
@@ -298,24 +298,74 @@
             background: rgba(0,0,0,0.85);
             justify-content: center;
             align-items: center;
-            cursor: pointer;
             padding: 15px;
         }
-        #modalGambar img {
-            max-width: 95%;
-            max-height: 85vh;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
-            object-fit: contain;
+        .modal-zoom-konten {
+            background: #fff;
+            width: 85%;
+            max-width: 380px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: zoomMasuk 0.25s ease-out;
         }
-        .tombol-tutup-zoom {
+        @keyframes zoomMasuk {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-zoom-header {
             position: absolute;
-            top: 15px; right: 20px;
+            top: 8px; right: 8px;
+            background: rgba(0,0,0,0.6);
             color: #fff;
-            font-size: 40px;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
             font-weight: bold;
             cursor: pointer;
-            line-height: 1;
+            z-index: 10;
+        }
+        .modal-zoom-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: #eee;
+        }
+        .modal-zoom-info {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .zoom-nama {
+            font-weight: bold;
+            font-size: 15px;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .zoom-harga {
+            font-size: 16px;
+            font-weight: bold;
+            color: #25D366;
+        }
+        .zoom-grosir {
+            font-size: 11px;
+            color: #007bff;
+        }
+        .zoom-besar {
+            font-size: 11px;
+            color: #8e44ad;
+        }
+        .zoom-stok {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: bold;
         }
 
         /* === FORM PEMESAN BAWAH === */
@@ -519,10 +569,19 @@
 </head>
 <body>
 
-<!-- MODAL ZOOM / LIGHTBOX GAMBAR FULLSCREEN -->
-<div id="modalGambar" onclick="tutupZoomFoto()">
-    <span class="tombol-tutup-zoom">&times;</span>
-    <img id="gambarBesar" src="" alt="Zoom Foto">
+<!-- MODAL ZOOM / LIGHTBOX DENGAN DETAIL BARANG DI BAWAHNYA -->
+<div id="modalGambar" onclick="tutupZoomFoto(event)">
+    <div class="modal-zoom-konten" onclick="event.stopPropagation()">
+        <div class="modal-zoom-header" onclick="tutupZoomFotoManual()">&times;</div>
+        <img id="gambarBesar" class="modal-zoom-img" src="" alt="Zoom Foto">
+        <div class="modal-zoom-info">
+            <div id="zoomNama" class="zoom-nama">Nama Barang</div>
+            <div id="zoomHarga" class="zoom-harga">Rp 0</div>
+            <div id="zoomGrosir" class="zoom-grosir"></div>
+            <div id="zoomBesar" class="zoom-besar"></div>
+            <div id="zoomStok" class="zoom-stok"></div>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL PERINGATAN / POPUP CUSTOM -->
@@ -692,18 +751,52 @@ let batasTampilSekarang = JUMLAH_PER_HALAMAN;
 let sedangTambahBarangScroll = false;
 let tokoSedangTutup = false; 
 
-// === FUNGSI ZOOM / LIGHTBOX FULLSCREEN FOTO ===
-function bukaZoomFoto(urlFoto) {
-    const modal = document.getElementById('modalGambar');
-    const imgBesar = document.getElementById('gambarBesar');
+// === FUNGSI ZOOM / LIGHTBOX FULLSCREEN DENGAN DETAIL LENGKAP ===
+function bukaZoomFoto(idx) {
+    const brg = daftarBarang[idx];
+    if (!brg) return;
+
+    const foto = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/300x200/eeeeee/888888?text=Foto+Barang';
     
-    if (!urlFoto || urlFoto.trim() === "" || urlFoto.includes('placeholder')) return;
+    document.getElementById('gambarBesar').src = foto;
+    document.getElementById('zoomNama').textContent = brg.nama;
     
-    imgBesar.src = urlFoto;
-    modal.style.display = "flex";
+    const hrgEceran = brg.hargaSatuan || 0;
+    document.getElementById('zoomHarga').textContent = `Rp ${hrgEceran.toLocaleString('id-ID')} / pcs`;
+
+    const elGrosir = document.getElementById('zoomGrosir');
+    if (brg.hargaGrosir > 0 && brg.minGrosir > 0) {
+        elGrosir.textContent = ` Hemat: Rp ${brg.hargaGrosir.toLocaleString('id-ID')} (Min ${brg.minGrosir} pcs)`;
+        elGrosir.style.display = 'block';
+    } else {
+        elGrosir.style.display = 'none';
+    }
+
+    const elBesar = document.getElementById('zoomBesar');
+    if (brg.hargaDus > 0 && brg.isiPerDus > 0) {
+        elBesar.textContent = ` ${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus} pcs)`;
+        elBesar.style.display = 'block';
+    } else {
+        elBesar.style.display = 'none';
+    }
+
+    const elStok = document.getElementById('zoomStok');
+    if (brg.stok <= 0) {
+        elStok.textContent = "❌ STOK HABIS";
+        elStok.style.color = "#dc3545";
+    } else {
+        elStok.textContent = `✅ Stok Tersedia: ${brg.stok} pcs`;
+        elStok.style.color = "#28a745";
+    }
+
+    document.getElementById('modalGambar').style.display = "flex";
 }
 
-function tutupZoomFoto() {
+function tutupZoomFoto(event) {
+    document.getElementById('modalGambar').style.display = "none";
+}
+
+function tutupZoomFotoManual() {
     document.getElementById('modalGambar').style.display = "none";
 }
 
@@ -908,7 +1001,7 @@ function renderKeranjangModal() {
                 const fotoBrg = brg.foto && brg.foto.length > 50 ? brg.foto : 'https://via.placeholder.com/100/eeeeee/888888?text=Foto';
 
                 html += `<div class="item-keranjang">
-                    <img src="${fotoBrg}" class="foto-item-keranjang" alt="${brg.nama}" onclick="bukaZoomFoto('${fotoBrg}')" style="cursor:pointer;" title="Klik perbesar">
+                    <img src="${fotoBrg}" class="foto-item-keranjang" alt="${brg.nama}" onclick="bukaZoomFoto(${i})" style="cursor:pointer;" title="Klik perbesar">
                     <div class="info-detail-item">
                         <div class="nama-item">${brg.nama}</div>
                         <div class="harga-item">Rp ${hrg.toLocaleString('id-ID')} / pcs</div>
@@ -1244,7 +1337,7 @@ function renderDaftarBarang(kata='') {
         const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
         
         return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
-            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto('${foto}')" loading="lazy" decoding="async" title="Klik perbesar foto">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto(${idx})" loading="lazy" decoding="async" title="Klik perbesar foto">
             <div class="produk-nama">${brg.nama}</div>
             <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
             ${grosirTeks}${dusTeks}${stokTeks}
@@ -1384,7 +1477,7 @@ function renderHasilPencarianServer(hasilCari) {
         const dusTeks = brg.hargaDus > 0 && brg.isiPerDus > 0 ? `<div class="produk-harga-besar">${brg.satuanBesar}: Rp ${brg.hargaDus.toLocaleString('id-ID')} (${brg.isiPerDus}pcs)</div>` : '';
         
         return `<div class="produk ${habis ? 'habis' : ''}" id="kartuProduk_${idx}">
-            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto('${foto}')" loading="lazy" decoding="async" title="Klik perbesar foto">
+            <img src="${foto}" class="produk-img" alt="${brg.nama}" onclick="bukaZoomFoto(${idx})" loading="lazy" decoding="async" title="Klik perbesar foto">
             <div class="produk-nama">${brg.nama}</div>
             <div class="produk-harga" id="teksHarga_${idx}">Rp ${hrg.toLocaleString('id-ID')}</div>
             ${grosirTeks}${dusTeks}${stokTeks}
