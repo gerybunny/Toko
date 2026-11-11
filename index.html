@@ -1569,11 +1569,11 @@ function cekMinPesan() {
 
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `🔒 Maaf, Lagi Tutup..`;
+        peringatan.textContent = `Buka jam 08:00-15:59, minggu / libur nasional tutup.`;
         
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '🔒 Tutup';
+            btn.innerHTML = 'Terkunci';
         }
         if (btnModal) {
             btnModal.disabled = true;
