@@ -1569,7 +1569,7 @@ function cekMinPesan() {
 
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `Buka jam 08:00-15:59, minggu / libur nasional tutup.`;
+        peringatan.textContent = `Jam 16:00-07:59, minggu, dan hari libur nasional Tutup`;
         
         if (btn) {
             btn.disabled = true;
@@ -1577,7 +1577,7 @@ function cekMinPesan() {
         }
         if (btnModal) {
             btnModal.disabled = true;
-            btnModal.innerHTML = '🔒 Toko Sedang Tutup';
+            btnModal.innerHTML = '🔒 Terkunci';
             btnModal.style.background = '#ccc';
         }
         return;
