@@ -952,13 +952,13 @@ async function perbaruiStatusToko() {
         elemen.style.borderColor = "#ffcdd2";
         tokoSedangTutup = true;
     } else if (totalMenit >= menitBuka && totalMenit <= menitTutup) {
-        elemen.textContent = "🟢 BUKA (08:00 - 16:00)";
+        elemen.textContent = "🟢 BUKA (08:00 - 15:59)";
         elemen.style.background = "#e8f5e9";
         elemen.style.color = "#2e7d32";
         elemen.style.borderColor = "#c8e6c9";
         tokoSedangTutup = false;
     } else {
-        elemen.textContent = "🔴 TUTUP (Buka Jam 08:00)";
+        elemen.textContent = "🔴 TUTUP (16:00 - 7:59)";
         elemen.style.background = "#ffebee";
         elemen.style.color = "#c62828";
         elemen.style.borderColor = "#ffcdd2";
@@ -1569,7 +1569,7 @@ function cekMinPesan() {
 
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `Jam 16:00-07:59, minggu, dan hari libur nasional Tutup.`;
+        peringatan.textContent = `Libur nasional,hari minggu, dan waktu tersebut diatas tutup.`;
         
         if (btn) {
             btn.disabled = true;
