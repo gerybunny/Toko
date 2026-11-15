@@ -82,12 +82,11 @@
             transition: all 0.3s ease;
         }
 
-        /* === WADAH TEKS PEMUATAN / RUNNING TEXT === */
+        /* === WADAH TEKS PEMUATAN / RUNNING TEXT SEAMLESS === */
         .info-muat-wrapper {
             width: calc(100% - 20px);
             margin: 4px 10px 4px 10px;
             font-size: 11px;
-            text-align: center;
             overflow: hidden;
             white-space: nowrap;
             border-radius: 6px;
@@ -103,20 +102,28 @@
             background: rgba(255, 243, 205, 0.20);
             border: 1px solid rgba(255, 238, 186, 0.8);
             color: #856404;
-            text-align: left;
             backdrop-filter: blur(8px);
         }
         
-        .running-text-span {
+        .teks-berjalan {
             display: inline-block;
             white-space: nowrap;
             font-weight: bold;
-            animation: jalanTeks 25s linear infinite;
+            animation: gulungTeks 20s linear infinite;
+            will-change: transform;
         }
 
-        @keyframes jalanTeks {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        .teks-berjalan span {
+            display: inline-block;
+        }
+
+        @keyframes gulungTeks {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+            100% {
+                transform: translate3d(-50%, 0, 0);
+            }
         }
 
         .ikon-keranjang {
@@ -239,7 +246,7 @@
             border-radius: 4px;
         }
 
-        /* === SKELETON LOADING (8 KARTU BERDENYUT) === */
+        /* === SKELETON LOADING === */
         @keyframes denyutSkeleton {
             0% { opacity: 0.5; }
             50% { opacity: 1; }
@@ -266,12 +273,8 @@
             background: #e0e0e0;
             border-radius: 4px;
         }
-        .skeleton-line.short {
-            width: 60%;
-        }
-        .skeleton-line.medium {
-            width: 80%;
-        }
+        .skeleton-line.short { width: 60%; }
+        .skeleton-line.medium { width: 80%; }
 
         .kosong {
             text-align: center;
@@ -288,7 +291,7 @@
             grid-column: 1 / -1;
         }
 
-        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN (MEPET KIRI KANAN SELEBAR CARD) === */
+        /* === MODAL LIGHTBOX / ZOOM GAMBAR FULLSCREEN === */
         #modalGambar {
             display: none;
             position: fixed;
@@ -308,21 +311,21 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 460px; /* Lebar maksimal disamakan persis dengan card detail harga di bawahnya */
+            max-width: 460px;
             max-height: calc(100vh - 160px);
             position: relative;
             cursor: pointer;
+            overflow: hidden;
         }
         #gambarBesar {
-            width: 100%;         /* Melebar penuh mengisi wadah */
+            width: 100%;
             height: auto;
             max-height: calc(100vh - 170px);
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            object-fit: contain;   /* Mengisi penuh ruang kotak tanpa sisa ruang kosong di samping */
+            object-fit: contain;
             background: #fff;
         }
-        /* Kotak Detail Barang di Bawah Modal Zoom */
         .zoom-detail-bawah {
             width: 100%;
             max-width: 460px;
@@ -352,14 +355,8 @@
             font-weight: bold;
             font-size: 15px;
         }
-        .zoom-harga-grosir {
-            color: #007bff;
-            font-size: 11px;
-        }
-        .zoom-harga-besar {
-            color: #8e44ad;
-            font-size: 11px;
-        }
+        .zoom-harga-grosir { color: #007bff; font-size: 11px; }
+        .zoom-harga-besar { color: #8e44ad; font-size: 11px; }
         .zoom-stok-baris {
             display: flex;
             justify-content: space-between;
@@ -410,7 +407,6 @@
             width: 100% !important;
             box-sizing: border-box !important;
         }
-        
         .input-fleksibel {
             flex: 1 1 0% !important;
             width: 0 !important;
@@ -426,7 +422,6 @@
             border-color: #128C7E;
             background: #fff;
         }
-
         .btn-aksi-mini {
             flex: 0 0 auto !important;
             padding: 8px 6px;
@@ -444,7 +439,6 @@
             transform: scale(0.92) !important;
             opacity: 0.8 !important;
         }
-
         .btn-gps-mini { background: #007bff; color: white; }
         .btn-wa-mini { background: #25D366; color: white; }
         .btn-wa-mini:disabled, .btn-gps-mini:disabled { 
@@ -503,55 +497,34 @@
         .tombol-tutup {
             background: none; border: none;
             font-size: 24px; cursor: pointer; color: #888;
-            line-height: 1;
-            padding: 0 4px;
+            line-height: 1; padding: 0 4px;
         }
-        
         .isi-modal { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 12px 16px; 
-            max-height: 50vh; 
-            -webkit-overflow-scrolling: touch; 
+            flex: 1; overflow-y: auto; padding: 12px 16px; 
+            max-height: 50vh; -webkit-overflow-scrolling: touch; 
         }
-        
         .item-keranjang { 
-            display: flex; 
-            align-items: flex-start;
-            gap: 12px; 
-            padding: 10px 0; 
-            border-bottom: 1px dashed #eee; 
+            display: flex; align-items: flex-start;
+            gap: 12px; padding: 10px 0; border-bottom: 1px dashed #eee; 
         }
-
         .foto-item-keranjang {
-            width: 62px;
-            height: 62px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: #f0f0f0;
-            flex-shrink: 0;
-            border: 1px solid #eee;
-            margin-top: 2px;
+            width: 62px; height: 62px;
+            object-fit: cover; border-radius: 8px;
+            background: #f0f0f0; flex-shrink: 0;
+            border: 1px solid #eee; margin-top: 2px;
         }
-        
-        .info-detail-item {
-            flex: 1;
-            min-width: 0;
-        }
+        .info-detail-item { flex: 1; min-width: 0; }
         .nama-item { font-weight: bold; font-size: 13px; line-height: 1.3; margin-bottom: 2px; }
         .harga-item { font-size: 11px; color: #666; margin-bottom: 6px; }
         .kontrol-item { display: flex; justify-content: space-between; align-items: center; }
         .grup-tombol { display: flex; gap: 6px; align-items: center; }
         .grup-tombol button {
-            width: 26px; height: 26px;
-            border: none; border-radius: 50%;
-            background: #25D366; color: white;
-            font-size: 14px; cursor: pointer;
+            width: 26px; height: 26px; border: none; border-radius: 50%;
+            background: #25D366; color: white; font-size: 14px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
         }
         .btn-hapus {
-            background: #dc3545; color: white;
-            border: none; padding: 4px 8px;
+            background: #dc3545; color: white; border: none; padding: 4px 8px;
             border-radius: 4px; font-size: 11px; cursor: pointer;
         }
         .subtotal-item { text-align: right; font-size: 12px; font-weight: bold; color: #128C7E; margin-top: 4px; }
@@ -591,7 +564,7 @@
 </head>
 <body>
 
-<!-- MODAL ZOOM / LIGHTBOX FULLSCREEN DENGAN GAMBAR MEPET KIRI KANAN -->
+<!-- MODAL ZOOM / LIGHTBOX FULLSCREEN -->
 <div id="modalGambar">
     <div class="wadah-gambar-zoom" onclick="tutupZoomFoto()">
         <img id="gambarBesar" src="" alt="Zoom Foto">
@@ -614,7 +587,7 @@
     </div>
 </div>
 
-<!-- MODAL PERINGATAN / POPUP CUSTOM -->
+<!-- MODAL PERINGATAN -->
 <div id="penutupModalPesan" class="penutup-layar" onclick="tutupPesanPeringatan()"></div>
 <div id="kotakModalPesan" class="kotak-konfirmasi" style="border-color:#007bff;">
     <h4 id="judulModalPesan" style="color:#333; margin-bottom:10px;">TOKO BP. AMAN</h4>
@@ -666,9 +639,9 @@
         </div>
     </div>
 
-    <!-- RUNNING TEXT / INFO PEMUATAN KEMBALI AKTIF -->
+    <!-- RUNNING TEXT & STATUS LOADING -->
     <div id="infoMuatWrapper" class="info-muat-wrapper">
-        <span id="infoMuat">Menyiapkan data barang...</span>
+        <span id="infoMuat" style="display: block; text-align: center;">Menyiapkan data barang...</span>
     </div>
 
     <input type="search" class="search-box" id="kotakCari" placeholder="🔍 Cari produk..." onkeyup="cekEnterCari(event)" onsearch="cekSearchClear()">
@@ -677,7 +650,6 @@
 <!-- DAFTAR BARANG -->
 <div class="daftar-barang-wrapper">
     <div id="daftarBarang" class="grid-produk">
-        <!-- ⚡ 8 KARTU SKELETON (4 BARIS X 2 KOLOM) PENUH LAYAR -->
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
         <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line" style="width:40%;"></div></div>
@@ -694,15 +666,10 @@
 <div class="bawah-ringkas" id="bagianFormPemesan">
     <div id="peringatanMin" class="peringatan"></div>
     <div class="baris-pemesan-4kolom" style="display: flex; align-items: center; gap: 4px; width: 100%; box-sizing: border-box;">
-        
         <input type="text" id="namaPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Nama & no WA" style="flex: 1; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-        
         <input type="text" id="alamatPemesan" autocomplete="one-time-code" class="input-fleksibel" placeholder="*Alamat rumah" style="flex: 1.2; min-width: 0; width: 0; padding: 8px 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-        
         <button type="button" class="btn-aksi-mini btn-gps-mini" id="btnGPS" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 31px; cursor: pointer;">📍 Lokasi</button>
-        
         <button class="btn-aksi-mini btn-wa-mini" id="btnKirimWA" onclick="kirimKeWA()" style="flex: 0 0 auto; white-space: nowrap; padding: 8px 8px; font-size: 11px; font-weight: bold; border-radius: 6px; height: 31px; cursor: pointer;">📲 Order</button>
-        
     </div>
 </div>
 
@@ -794,11 +761,9 @@ function bukaZoomFoto(idx) {
     
     const modal = document.getElementById('modalGambar');
     const imgBesar = document.getElementById('gambarBesar');
-    
     imgBesar.src = urlFoto;
     
     perbaruiTampilanZoomDetail();
-    
     modal.style.display = "flex";
 }
 
@@ -1015,11 +980,18 @@ async function simpanRunningTextBaru() {
 
 function aktifkanRunningText() {
     const wrapper = document.getElementById('infoMuatWrapper');
-    if (!wrapper) return;
+    const infoSpan = document.getElementById('infoMuat');
+    if (!wrapper || !infoSpan) return;
     
-    wrapper.style.display = 'block';
     wrapper.classList.add('running-mode');
-    wrapper.innerHTML = `<span class="running-text-span">${runningTextGlobal}</span>`;
+    
+    // Ubah isi span jadi dua bagian berdampingan agar mutar mulus seamless tanpa putus
+    wrapper.innerHTML = `
+        <div class="teks-berjalan">
+            <span>${runningTextGlobal}&nbsp;&nbsp;&nbsp;&nbsp;#################### TOKO BP. AMAN ####################&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span>${runningTextGlobal}&nbsp;&nbsp;&nbsp;&nbsp;#################### TOKO BP. AMAN ####################&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+    `;
 }
 
 function bukaKeranjang() {
@@ -1271,13 +1243,14 @@ async function fetchDenganCobaUlang(url, maks=3) {
     }
 }
 
-// ⚡ PEMUATAN DATA STREAMING NGEBUT (DENGAN INSTANT CACHE LOAD)
 async function muatDariInternet() {
     if (sedangMemuat) return; 
     sedangMemuat = true;
-    const infoSpan = document.getElementById('infoMuat');
     
-    ambilRunningTextOnline();
+    const infoSpan = document.getElementById('infoMuat');
+    if (infoSpan) infoSpan.textContent = 'Menyiapkan data barang...';
+
+    await ambilRunningTextOnline();
 
     const cache = ambilCacheBarang();
     if (cache && cache.length > 0) {
@@ -1290,10 +1263,6 @@ async function muatDariInternet() {
     let mulaiDari = 0;
     let adaLagi = true;
     let semuaBarangBaru = [...daftarBarang];
-    
-    if (infoSpan) {
-        infoSpan.textContent = 'Menyiapkan data barang...';
-    }
 
     while (adaLagi) {
         try {
@@ -1317,7 +1286,7 @@ async function muatDariInternet() {
                     hargaGrosir: Number(itemBaru.hargaGrosir) || 0,
                     minGrosir: Number(itemBaru.minGrosir) || 999999, 
                     hargaDus: Number(itemBaru.hargaDus) || 0,
-                    isiPerDus: Number(itemBaru.isiPerDus) || 0, 
+                    isiPerDus: Number(itemMaju = itemBaru.isiPerDus) || 0, 
                     stok: Number(itemBaru.stok) || 0, 
                     foto: itemBaru.foto || ""
                 };
@@ -1349,7 +1318,7 @@ async function muatDariInternet() {
         tampilkanBarangHabis();
     }
 
-    if (infoSpan) infoSpan.textContent = '';
+    // Setelah proses muat selesai, baru aktifkan running text seamless di sini!
     aktifkanRunningText();
     sedangMemuat = false;
 }
@@ -1375,9 +1344,7 @@ function renderDaftarBarang(kata='') {
     const indikator = document.getElementById('indikatorScroll');
     kataKunciAktif = kata;
     
-    if (daftarBarang.length === 0) {
-        return;
-    }
+    if (daftarBarang.length === 0) return;
     
     const filter = kataKunciAktif 
         ? daftarBarang.filter(b => b.nama.toLowerCase().includes(kataKunciAktif.toLowerCase())) 
@@ -1427,13 +1394,11 @@ function renderDaftarBarang(kata='') {
 
 window.onscroll = function() {
     if (kataKunciAktif) return;
-    
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) {
         if (!sedangTambahBarangScroll && batasTampilSekarang < daftarBarang.length) {
             sedangTambahBarangScroll = true;
             batasTampilSekarang += JUMLAH_PER_HALAMAN;
             renderDaftarBarang(kataKunciAktif);
-            
             setTimeout(() => { sedangTambahBarangScroll = false; }, 50);
         }
     }
@@ -1479,7 +1444,6 @@ function kurang(idx) {
 
 async function cariBarang() {
     const keyword = document.getElementById('kotakCari').value.trim();
-    
     if (!keyword) {
         kataKunciAktif = '';
         batasTampilSekarang = JUMLAH_PER_HALAMAN;
@@ -1524,7 +1488,6 @@ async function cariBarang() {
         });
 
         renderHasilPencarianServer(hasilCari);
-
     } catch (e) {
         kataKunciAktif = keyword;
         renderDaftarBarang(keyword);
@@ -1533,7 +1496,6 @@ async function cariBarang() {
 
 function renderHasilPencarianServer(hasilCari) {
     const wadah = document.getElementById('daftarBarang');
-
     const htmlProduk = hasilCari.map(brg => {
         const idx = daftarBarang.findIndex(b => b.barisAsliDiSheet === brg.barisAsliDiSheet);
         const jml = keranjang[idx] || 0;
@@ -1569,17 +1531,9 @@ function cekMinPesan() {
 
     if (tokoSedangTutup) {
         peringatan.style.display = 'block';
-        peringatan.textContent = `Libur nasional,hari minggu, dan waktu tersebut diatas tutup.`;
-        
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = 'Terkunci';
-        }
-        if (btnModal) {
-            btnModal.disabled = true;
-            btnModal.innerHTML = '🔒 Terkunci';
-            btnModal.style.background = '#ccc';
-        }
+        peringatan.textContent = `Libur nasional, hari minggu, dan di luar jam operasional toko tutup.`;
+        if (btn) { btn.disabled = true; btn.innerHTML = 'Terkunci'; }
+        if (btnModal) { btnModal.disabled = true; btnModal.innerHTML = '🔒 Terkunci'; btnModal.style.background = '#ccc'; }
         return;
     }
 
@@ -1771,7 +1725,6 @@ let sedangProsesOrder = false;
 
 async function kirimKeWA() {
     if (sedangProsesOrder) return;
-
     if (tokoSedangTutup) {
         tampilPesan("🔒 <b>Toko Sedang Tutup</b><br>Pemesanan belum dapat dilakukan saat ini.");
         return;
@@ -1826,10 +1779,7 @@ async function kirimKeWA() {
     }
 
     sedangProsesOrder = true;
-    if (btnWA) {
-        btnWA.disabled = true;
-        btnWA.innerText = "⏳...";
-    }
+    if (btnWA) { btnWA.disabled = true; btnWA.innerText = "⏳..."; }
 
     const untung = totalBayar - totalModal;
     const sekarang = new Date();
@@ -1853,22 +1803,17 @@ async function kirimKeWA() {
 
     try {
         kirimPesananKeRiwayat(dataPesanan);
-
         const urlWA = `https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesanWA)}`;
         window.open(urlWA, '_blank');
 
         keranjang = {};
         renderDaftarBarang();
-
     } catch (e) {
         tampilPesan("Gagal terhubung, coba lagi!");
     } finally {
         setTimeout(() => {
             sedangProsesOrder = false;
-            if (btnWA) {
-                btnWA.disabled = false;
-                btnWA.innerText = "📲 Order";
-            }
+            if (btnWA) { btnWA.disabled = false; btnWA.innerText = "📲 Order"; }
         }, 15000);
     }
 }
